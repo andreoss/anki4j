@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.andreoss</groupId>
   <artifactId>anki4j</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <packaging>jar</packaging>
   <name>anki4j</name>
   <description>Read, create and modify flashcard decks in the standard SQLite collection format.</description>
@@ -22,10 +22,10 @@
     <maven.compiler.release>17</maven.compiler.release>
     <junit.version>5.8.2</junit.version>
     <sqlite.version>3.36.0.3</sqlite.version>
-    <lombok.version>1.18.22</lombok.version>
+    <lombok.version>1.18.24</lombok.version>
     <qulice.version>0.24.0</qulice.version>
     <jacoco.version>0.8.8</jacoco.version>
-    <pitest.version>1.7.5</pitest.version>
+    <pitest.version>1.7.6</pitest.version>
     <pitest.junit5.version>0.15</pitest.junit5.version>
     <pitest.threshold>60</pitest.threshold>
     <coverage.threshold>0.961</coverage.threshold>
