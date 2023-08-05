@@ -1,0 +1,36 @@
+= anki4j
+
+Java library to read, create and modify flashcard decks in the standard
+SQLite collection format.
+
+== Build
+
+[source,bash]
+----
+./mvnw -B package
+----
+
+== Test
+
+[source,bash]
+----
+./mvnw -B test
+----
+
+== Coverage
+
+[source,bash]
+----
+./mvnw -B verify
+----
+
+== Use
+
+[source,xml]
+----
+<dependency>
+  <groupId>io.github.andreoss</groupId>
+  <artifactId>anki4j</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+</dependency>
+----
