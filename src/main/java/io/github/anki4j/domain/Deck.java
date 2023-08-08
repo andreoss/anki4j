@@ -1,0 +1,44 @@
+/**
+ * Value of the domain model.
+ *
+ * @since 0.1.0
+ */
+package io.github.anki4j.domain;
+
+import lombok.Builder;
+import lombok.Value;
+
+/**
+ * A deck holding cards.
+ *
+ * @since 0.1.0
+ */
+@Value
+@Builder
+public class Deck {
+
+    /**
+     * Identifier of the deck.
+     */
+    private DeckId id;
+
+    /**
+     * Full name of the deck.
+     */
+    private String name;
+
+    /**
+     * Modification time in seconds since the epoch.
+     */
+    private long modified;
+
+    /**
+     * Update sequence number.
+     */
+    private long usn;
+
+    /**
+     * Whether the deck is a filtered deck.
+     */
+    private boolean dynamic;
+}
