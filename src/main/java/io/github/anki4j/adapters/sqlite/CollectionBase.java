@@ -1,0 +1,61 @@
+/**
+ * Adapter over the collection database.
+ *
+ * @since 0.1.0
+ */
+package io.github.anki4j.adapters.sqlite;
+
+import io.github.anki4j.domain.Card;
+import io.github.anki4j.domain.Deck;
+import io.github.anki4j.domain.Note;
+import io.github.anki4j.domain.NoteType;
+import io.github.anki4j.ports.Collection;
+import java.util.List;
+
+/**
+ * Contents of a collection file, read once and held in memory.
+ *
+ * @since 0.1.0
+ */
+abstract class CollectionBase implements Collection {
+
+    /**
+     * Contents of the collection.
+     */
+    private final CollectionState state;
+
+    /**
+     * New collection over the contents of a file.
+     *
+     * @param state Contents of the file
+     */
+    CollectionBase(final CollectionState state) {
+        this.state = state;
+    }
+
+    @Override
+    public int schemaVersion() {
+        return this.state.getVersion();
+    }
+
+    @Override
+    public List<Deck> decks() {
+        return List.copyOf(this.state.getDecklist());
+    }
+
+    @Override
+    public List<NoteType> noteTypes() {
+        return List.copyOf(this.state.getNotetypelist());
+    }
+
+    @Override
+    public List<Note> notes() {
+        return List.copyOf(this.state.getNotelist());
+    }
+
+    @Override
+    public List<Card> cards() {
+        return List.copyOf(this.state.getCardlist());
+    }
+
+}

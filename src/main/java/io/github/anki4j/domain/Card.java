@@ -61,4 +61,17 @@ public class Card {
      * Opaque data of the card.
      */
     private String data;
+
+    /**
+     * Copy of the card in another deck.
+     *
+     * @param target Identifier of the deck
+     * @return Card in the deck
+     */
+    public Card withDeck(final DeckId target) {
+        return new Card(
+            this.id, this.note, target, this.ordinal, this.modified,
+            this.usn, this.schedule, this.flags, this.data
+        );
+    }
 }

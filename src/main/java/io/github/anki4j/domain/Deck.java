@@ -41,4 +41,16 @@ public class Deck {
      * Whether the deck is a filtered deck.
      */
     private boolean dynamic;
+
+    /**
+     * Copy of the deck under another name.
+     *
+     * @param title New name of the deck
+     * @return Deck under the name
+     */
+    public Deck withName(final String title) {
+        return new Deck(
+            this.id, title, this.modified, this.usn, this.dynamic
+        );
+    }
 }

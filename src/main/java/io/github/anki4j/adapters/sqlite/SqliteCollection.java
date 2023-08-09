@@ -5,16 +5,12 @@
  */
 package io.github.anki4j.adapters.sqlite;
 
-import io.github.anki4j.domain.Card;
 import io.github.anki4j.domain.Deck;
-import io.github.anki4j.domain.Note;
-import io.github.anki4j.domain.NoteType;
-import io.github.anki4j.ports.Collection;
+import io.github.anki4j.domain.DeckId;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 import org.sqlite.SQLiteDataSource;
 
 /**
@@ -22,37 +18,12 @@ import org.sqlite.SQLiteDataSource;
  *
  * @since 0.1.0
  */
-public final class SqliteCollection implements Collection, AutoCloseable {
+public final class SqliteCollection extends CollectionBase implements AutoCloseable {
 
     /**
-     * Connection to the database file.
+     * Editor of the contents of the collection.
      */
-    private final Connection connection;
-
-    /**
-     * Schema version of the collection.
-     */
-    private final int version;
-
-    /**
-     * Decks of the collection.
-     */
-    private final List<Deck> decklist;
-
-    /**
-     * Note types of the collection.
-     */
-    private final List<NoteType> notetypelist;
-
-    /**
-     * Notes of the collection.
-     */
-    private final List<Note> notelist;
-
-    /**
-     * Cards of the collection.
-     */
-    private final List<Card> cardlist;
+    private final CollectionEditor editor;
 
     /**
      * New collection over an existing file.
@@ -82,42 +53,28 @@ public final class SqliteCollection implements Collection, AutoCloseable {
      * @param state Contents of the file
      */
     private SqliteCollection(final CollectionState state) {
-        this.connection = state.getConnection();
-        this.version = state.getVersion();
-        this.decklist = state.getDecklist();
-        this.notetypelist = state.getNotetypelist();
-        this.notelist = state.getNotelist();
-        this.cardlist = state.getCardlist();
+        super(state);
+        this.editor = new CollectionEditor(state);
     }
 
     @Override
-    public int schemaVersion() {
-        return this.version;
+    public Deck createDeck(final String name) {
+        return this.editor.createDeck(name);
     }
 
     @Override
-    public List<Deck> decks() {
-        return this.decklist;
+    public void renameDeck(final DeckId id, final String name) {
+        this.editor.renameDeck(id, name);
     }
 
     @Override
-    public List<NoteType> noteTypes() {
-        return this.notetypelist;
-    }
-
-    @Override
-    public List<Note> notes() {
-        return this.notelist;
-    }
-
-    @Override
-    public List<Card> cards() {
-        return this.cardlist;
+    public void deleteDeck(final DeckId id) {
+        this.editor.deleteDeck(id);
     }
 
     @Override
     public void close() throws SQLException {
-        this.connection.close();
+        this.editor.close();
     }
 
     /**
