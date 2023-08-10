@@ -6,8 +6,10 @@
 package io.github.anki4j.adapters.sqlite;
 
 import io.github.anki4j.Work;
+import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
+import io.github.anki4j.domain.NoteId;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -85,6 +87,50 @@ final class DeckOperationTest {
     }
 
     /**
+     * The cards of a note move to another deck.
+     *
+     * @throws Exception When the collection cannot be read
+     */
+    @Test
+    void movesANote() throws Exception {
+        final Path path = Fixture.legacy(new Work().directory("movenote"));
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            collection.moveNote(new NoteId(Fixture.NOTE_ID), new DeckId(1L));
+            Assertions.assertEquals(
+                1L, collection.cards().get(0).getDeck().getValue()
+            );
+        }
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            Assertions.assertEquals(
+                1L, collection.cards().get(0).getDeck().getValue()
+            );
+        }
+    }
+
+    /**
+     * A card moves to another deck.
+     *
+     * @throws Exception When the collection cannot be read
+     */
+    @Test
+    void movesACard() throws Exception {
+        final Path path = Fixture.legacy(new Work().directory("movecard"));
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            collection.moveCard(
+                new CardId(Fixture.CARD_ID), new DeckId(1L)
+            );
+            Assertions.assertEquals(
+                1L, collection.cards().get(0).getDeck().getValue()
+            );
+        }
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            Assertions.assertEquals(
+                1L, collection.cards().get(0).getDeck().getValue()
+            );
+        }
+    }
+
+    /**
      * An operation on something that is not there is reported.
      *
      * @throws Exception When the collection cannot be read
@@ -100,6 +146,14 @@ final class DeckOperationTest {
             Assertions.assertThrows(
                 IllegalArgumentException.class,
                 () -> collection.deleteDeck(new DeckId(99L))
+            );
+            Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> collection.moveNote(new NoteId(99L), new DeckId(1L))
+            );
+            Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> collection.moveCard(new CardId(99L), new DeckId(1L))
             );
         }
     }

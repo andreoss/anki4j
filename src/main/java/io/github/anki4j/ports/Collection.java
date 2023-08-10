@@ -6,9 +6,11 @@
 package io.github.anki4j.ports;
 
 import io.github.anki4j.domain.Card;
+import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
 import io.github.anki4j.domain.Note;
+import io.github.anki4j.domain.NoteId;
 import io.github.anki4j.domain.NoteType;
 import java.util.List;
 
@@ -77,4 +79,19 @@ public interface Collection {
      */
     void deleteDeck(DeckId id);
 
+    /**
+     * Move a note to a deck.
+     *
+     * @param id Identifier of the note
+     * @param deck Identifier of the deck
+     */
+    void moveNote(NoteId id, DeckId deck);
+
+    /**
+     * Move a card to a deck.
+     *
+     * @param id Identifier of the card
+     * @param deck Identifier of the deck
+     */
+    void moveCard(CardId id, DeckId deck);
 }

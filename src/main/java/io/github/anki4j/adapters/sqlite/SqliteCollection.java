@@ -5,8 +5,10 @@
  */
 package io.github.anki4j.adapters.sqlite;
 
+import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
+import io.github.anki4j.domain.NoteId;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -70,6 +72,16 @@ public final class SqliteCollection extends CollectionBase implements AutoClosea
     @Override
     public void deleteDeck(final DeckId id) {
         this.editor.deleteDeck(id);
+    }
+
+    @Override
+    public void moveNote(final NoteId id, final DeckId deck) {
+        this.editor.moveNote(id, deck);
+    }
+
+    @Override
+    public void moveCard(final CardId id, final DeckId deck) {
+        this.editor.moveCard(id, deck);
     }
 
     @Override

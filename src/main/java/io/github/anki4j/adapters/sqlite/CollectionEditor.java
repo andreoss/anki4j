@@ -6,8 +6,11 @@
 package io.github.anki4j.adapters.sqlite;
 
 import io.github.anki4j.domain.Card;
+import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
+import io.github.anki4j.domain.Note;
+import io.github.anki4j.domain.NoteId;
 import java.sql.SQLException;
 
 /**
@@ -115,6 +118,55 @@ final class CollectionEditor {
             this.state.getConnection(),
             this.state.getVersion(),
             this.state.getDecklist()
+        );
+    }
+
+    /**
+     * Move the cards of a note to a deck.
+     *
+     * @param id Identifier of the note
+     * @param deck Identifier of the deck
+     */
+    void moveNote(final NoteId id, final DeckId deck) {
+        boolean found = false;
+        for (final Note note : this.state.getNotelist()) {
+            if (note.getId().getValue() == id.getValue()) {
+                found = true;
+            }
+        }
+        if (!found) {
+            throw new IllegalArgumentException(
+                String.format("no note with id %d", id.getValue())
+            );
+        }
+        for (int index = 0; index < this.state.getCardlist().size(); index += 1) {
+            final Card card = this.state.getCardlist().get(index);
+            if (card.getNote().getValue() == id.getValue()) {
+                this.state.getCardlist().set(index, card.withDeck(deck));
+                MoveStore.movecard(
+                    this.state.getConnection(), card.getId(), deck
+                );
+            }
+        }
+    }
+
+    /**
+     * Move a card to a deck.
+     *
+     * @param id Identifier of the card
+     * @param deck Identifier of the deck
+     */
+    void moveCard(final CardId id, final DeckId deck) {
+        for (int index = 0; index < this.state.getCardlist().size(); index += 1) {
+            final Card card = this.state.getCardlist().get(index);
+            if (card.getId().getValue() == id.getValue()) {
+                this.state.getCardlist().set(index, card.withDeck(deck));
+                MoveStore.movecard(this.state.getConnection(), id, deck);
+                return;
+            }
+        }
+        throw new IllegalArgumentException(
+            String.format("no card with id %d", id.getValue())
         );
     }
 
