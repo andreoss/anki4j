@@ -26,7 +26,7 @@ final class NoteRows {
     /**
      * Character between the field values of a note.
      */
-    private static final char FIELD_SEPARATOR = '\u001F';
+    static final char SEPARATOR = '\u001F';
 
     /**
      * Character between the tags of a note.
@@ -85,7 +85,7 @@ final class NoteRows {
         List<String> fields = List.of();
         if (joined != null && !joined.isEmpty()) {
             fields = Arrays.asList(
-                joined.split(String.valueOf(NoteRows.FIELD_SEPARATOR), -1)
+                joined.split(String.valueOf(NoteRows.SEPARATOR), -1)
             );
         }
         return fields;

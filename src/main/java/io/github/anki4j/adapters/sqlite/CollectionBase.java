@@ -10,6 +10,8 @@ import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteType;
 import io.github.anki4j.ports.Collection;
+import io.github.anki4j.ports.Editor;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -58,4 +60,17 @@ abstract class CollectionBase implements Collection {
         return List.copyOf(this.state.getCardlist());
     }
 
+    @Override
+    public Editor editor() {
+        return new CollectionEditor(this.state);
+    }
+
+    /**
+     * Close the file of the collection.
+     *
+     * @throws SQLException When the file cannot be closed
+     */
+    void closeFile() throws SQLException {
+        this.state.getConnection().close();
+    }
 }
