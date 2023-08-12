@@ -81,4 +81,5 @@ public interface Editor {
      * @param id Identifier of the note
      */
     void deleteNote(NoteId id);
+
 }

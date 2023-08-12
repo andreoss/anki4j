@@ -121,6 +121,24 @@ final class NoteOps {
     }
 
     /**
+     * The note of a collection.
+     *
+     * @param notes Notes of the collection
+     * @param id Identifier of the note
+     * @return Note of the collection
+     */
+    static Note find(final List<Note> notes, final NoteId id) {
+        for (final Note note : notes) {
+            if (note.getId().getValue() == id.getValue()) {
+                return note;
+            }
+        }
+        throw new IllegalArgumentException(
+            String.format("no note with id %d", id.getValue())
+        );
+    }
+
+    /**
      * Write a note.
      *
      * @param connection Connection to the database file

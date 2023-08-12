@@ -11,6 +11,7 @@ import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteType;
 import io.github.anki4j.ports.Collection;
 import io.github.anki4j.ports.Editor;
+import io.github.anki4j.ports.NoteTypes;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -63,6 +64,11 @@ abstract class CollectionBase implements Collection {
     @Override
     public Editor editor() {
         return new CollectionEditor(this.state);
+    }
+
+    @Override
+    public NoteTypes types() {
+        return new TypeEditor(this.state);
     }
 
     /**

@@ -13,7 +13,6 @@ import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteId;
 import io.github.anki4j.domain.NoteTypeId;
 import io.github.anki4j.ports.Editor;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -258,14 +257,5 @@ final class CollectionEditor implements Editor {
             }
         }
         NoteOps.remove(this.state.getConnection(), id);
-    }
-
-    /**
-     * Close the file of the collection.
-     *
-     * @throws SQLException When the file cannot be closed
-     */
-    void close() throws SQLException {
-        this.state.getConnection().close();
     }
 }

@@ -59,4 +59,11 @@ public interface Collection {
      * @return Editor of the collection
      */
     Editor editor();
+
+    /**
+     * The note types of the collection.
+     *
+     * @return Note types of the collection
+     */
+    NoteTypes types();
 }

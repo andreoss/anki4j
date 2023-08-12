@@ -9,10 +9,7 @@ import io.avaje.jsonb.JsonType;
 import io.avaje.jsonb.Jsonb;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
-import io.github.anki4j.domain.NoteField;
-import io.github.anki4j.domain.NoteTemplate;
 import io.github.anki4j.domain.NoteType;
-import io.github.anki4j.domain.NoteTypeId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -71,67 +68,7 @@ final class LegacyModels {
      * @return Note types, in the order of the document
      */
     static List<NoteType> noteTypes(final String document) {
-        final List<NoteType> types = new ArrayList<>(0);
-        final Object parsed = LegacyModels.parse(document);
-        if (parsed instanceof Map) {
-            final Map<?, ?> entries = (Map<?, ?>) parsed;
-            for (final Map.Entry<?, ?> entry : entries.entrySet()) {
-                final Map<?, ?> type = (Map<?, ?>) entry.getValue();
-                types.add(
-                    NoteType.builder()
-                        .id(new NoteTypeId(LegacyModels.number(type, "id", 0L)))
-                        .name(LegacyModels.name(type))
-                        .fields(LegacyModels.fields(type))
-                        .templates(LegacyModels.templates(type))
-                        .modified(LegacyModels.number(type, "mod", 0L))
-                        .usn(LegacyModels.number(type, "usn", 0L))
-                        .build()
-                );
-            }
-        }
-        return types;
-    }
-
-    /**
-     * Read the fields of a note type.
-     *
-     * @param type Note type
-     * @return Fields, in ordinal order
-     */
-    private static List<NoteField> fields(final Map<?, ?> type) {
-        final List<NoteField> fields = new ArrayList<>(0);
-        for (final Object field : LegacyModels.items(type, "flds")) {
-            final Map<?, ?> item = (Map<?, ?>) field;
-            fields.add(
-                NoteField.builder()
-                    .name(LegacyModels.name(item))
-                    .ordinal((int) LegacyModels.number(item, "ord", 0L))
-                    .build()
-            );
-        }
-        return fields;
-    }
-
-    /**
-     * Read the card templates of a note type.
-     *
-     * @param type Note type
-     * @return Card templates, in ordinal order
-     */
-    private static List<NoteTemplate> templates(final Map<?, ?> type) {
-        final List<NoteTemplate> templates = new ArrayList<>(0);
-        for (final Object template : LegacyModels.items(type, "tmpls")) {
-            final Map<?, ?> item = (Map<?, ?>) template;
-            templates.add(
-                NoteTemplate.builder()
-                    .name(LegacyModels.name(item))
-                    .ordinal((int) LegacyModels.number(item, "ord", 0L))
-                    .question(LegacyModels.text(item, "qfmt"))
-                    .answer(LegacyModels.text(item, "afmt"))
-                    .build()
-            );
-        }
-        return templates;
+        return TypeReader.read(document);
     }
 
     /**
@@ -141,23 +78,12 @@ final class LegacyModels {
      * @return Name of the model, empty when it has none
      */
     private static String name(final Map<?, ?> model) {
-        return LegacyModels.text(model, "name");
-    }
-
-    /**
-     * Read the text of a member.
-     *
-     * @param value Value holding the members
-     * @param key Name of the member
-     * @return Text of the member, empty when it is absent
-     */
-    private static String text(final Map<?, ?> value, final String key) {
-        final Object found = value.get(key);
-        String text = "";
+        final Object found = model.get("name");
+        String name = "";
         if (found instanceof String) {
-            text = (String) found;
+            name = (String) found;
         }
-        return text;
+        return name;
     }
 
     /**
@@ -179,22 +105,6 @@ final class LegacyModels {
             number = ((Number) found).longValue();
         }
         return number;
-    }
-
-    /**
-     * Read the items of a member.
-     *
-     * @param value Value holding the members
-     * @param key Name of the member
-     * @return Items of the member, empty when it holds none
-     */
-    private static List<Object> items(final Map<?, ?> value, final String key) {
-        final Object found = value.get(key);
-        final List<Object> items = new ArrayList<>(0);
-        if (found instanceof List) {
-            items.addAll((List<?>) found);
-        }
-        return items;
     }
 
     /**

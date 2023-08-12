@@ -39,6 +39,26 @@ public class NoteType {
     private List<NoteTemplate> templates;
 
     /**
+     * Checks on the fields, in the order the format keeps them.
+     */
+    private List<Check> checks;
+
+    /**
+     * Styling of the cards.
+     */
+    private String css;
+
+    /**
+     * Ordinal of the field the notes are sorted by.
+     */
+    private int sortfield;
+
+    /**
+     * Identifier of the deck the new cards go to.
+     */
+    private DeckId deck;
+
+    /**
      * Modification time in seconds since the epoch.
      */
     private long modified;
