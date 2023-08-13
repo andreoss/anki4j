@@ -82,4 +82,12 @@ public interface Editor {
      */
     void deleteNote(NoteId id);
 
+    /**
+     * Make the cards of a note from the templates of its note type.
+     *
+     * @param id Identifier of the note
+     * @param deck Identifier of the deck the cards go to
+     */
+    void generateCards(NoteId id, DeckId deck);
+
 }

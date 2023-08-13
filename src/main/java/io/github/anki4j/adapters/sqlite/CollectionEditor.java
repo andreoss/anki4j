@@ -11,7 +11,10 @@ import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
 import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteId;
+import io.github.anki4j.domain.NoteTemplate;
+import io.github.anki4j.domain.NoteType;
 import io.github.anki4j.domain.NoteTypeId;
+import io.github.anki4j.domain.Schedule;
 import io.github.anki4j.ports.Editor;
 import java.util.List;
 
@@ -257,5 +260,47 @@ final class CollectionEditor implements Editor {
             }
         }
         NoteOps.remove(this.state.getConnection(), id);
+    }
+
+    @Override
+    public void generateCards(final NoteId id, final DeckId deck) {
+        final Note note = NoteOps.find(this.state.getNotelist(), id);
+        final NoteType type = TypeOps.find(
+            this.state.getNotetypelist(), note.getNotetype()
+        );
+        final long due = CardOps.position(this.state.getCardlist());
+        for (final NoteTemplate template : type.getTemplates()) {
+            final Card found = CardOps.find(
+                this.state.getCardlist(), id, template.getOrdinal()
+            );
+            if (found == null) {
+                final Card card = Card.builder()
+                    .id(new CardId(CardOps.nextid(this.state.getCardlist())))
+                    .note(id)
+                    .deck(deck)
+                    .ordinal(template.getOrdinal())
+                    .modified(DeckOps.now())
+                    .usn(-1L)
+                    .schedule(
+                        Schedule.builder()
+                            .type(0)
+                            .queue(0)
+                            .due(due)
+                            .interval(0L)
+                            .factor(0)
+                            .repetitions(0)
+                            .lapses(0)
+                            .left(0)
+                            .originaldue(0L)
+                            .originaldeck(0L)
+                            .build()
+                    )
+                    .flags(0)
+                    .data("")
+                    .build();
+                this.state.getCardlist().add(card);
+                CardOps.write(this.state.getConnection(), card);
+            }
+        }
     }
 }
