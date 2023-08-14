@@ -6,6 +6,7 @@
 package io.github.anki4j.adapters.sqlite;
 
 import io.github.anki4j.domain.Card;
+import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.NoteId;
 import io.github.anki4j.domain.Schedule;
 import java.sql.Connection;
@@ -120,4 +121,42 @@ final class CardOps {
             throw new IllegalStateException("cannot write the card", error);
         }
     }
+
+    /**
+     * Write the scheduling state of a card.
+     *
+     * @param connection Connection to the database file
+     * @param id Identifier of the card
+     * @param schedule Scheduling state of the card
+     */
+    static void schedule(
+        final Connection connection,
+        final CardId id,
+        final Schedule schedule
+    ) {
+        try (PreparedStatement statement = connection.prepareStatement(
+            """
+            update cards
+            set type = ?, queue = ?, due = ?, ivl = ?, factor = ?, reps = ?,
+                lapses = ?, left = ?, odue = ?, odid = ?
+            where id = ?
+            """
+        )) {
+            statement.setInt(1, schedule.getType());
+            statement.setInt(2, schedule.getQueue());
+            statement.setLong(3, schedule.getDue());
+            statement.setLong(4, schedule.getInterval());
+            statement.setInt(5, schedule.getFactor());
+            statement.setInt(6, schedule.getRepetitions());
+            statement.setInt(7, schedule.getLapses());
+            statement.setInt(8, schedule.getLeft());
+            statement.setLong(9, schedule.getOriginaldue());
+            statement.setLong(10, schedule.getOriginaldeck());
+            statement.setLong(11, id.getValue());
+            statement.executeUpdate();
+        } catch (final SQLException error) {
+            throw new IllegalStateException("cannot write the card", error);
+        }
+    }
+
 }

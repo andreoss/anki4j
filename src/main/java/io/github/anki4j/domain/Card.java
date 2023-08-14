@@ -63,6 +63,19 @@ public class Card {
     private String data;
 
     /**
+     * Copy of the card with another scheduling state.
+     *
+     * @param state Scheduling state of the card
+     * @return Card with the scheduling state
+     */
+    public Card withSchedule(final Schedule state) {
+        return new Card(
+            this.id, this.note, this.deck, this.ordinal, this.modified,
+            this.usn, state, this.flags, this.data
+        );
+    }
+
+    /**
      * Copy of the card in another deck.
      *
      * @param target Identifier of the deck

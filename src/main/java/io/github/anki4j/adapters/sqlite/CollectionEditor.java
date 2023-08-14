@@ -303,4 +303,19 @@ final class CollectionEditor implements Editor {
             }
         }
     }
+
+    @Override
+    public void setSchedule(final CardId id, final Schedule schedule) {
+        for (int index = 0; index < this.state.getCardlist().size(); index += 1) {
+            final Card card = this.state.getCardlist().get(index);
+            if (card.getId().getValue() == id.getValue()) {
+                this.state.getCardlist().set(index, card.withSchedule(schedule));
+                CardOps.schedule(this.state.getConnection(), id, schedule);
+                return;
+            }
+        }
+        throw new IllegalArgumentException(
+            String.format("no card with id %d", id.getValue())
+        );
+    }
 }

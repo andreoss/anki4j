@@ -11,6 +11,7 @@ import io.github.anki4j.domain.DeckId;
 import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteId;
 import io.github.anki4j.domain.NoteTypeId;
+import io.github.anki4j.domain.Schedule;
 import java.util.List;
 
 /**
@@ -90,4 +91,11 @@ public interface Editor {
      */
     void generateCards(NoteId id, DeckId deck);
 
+    /**
+     * Write the scheduling state of a card.
+     *
+     * @param id Identifier of the card
+     * @param schedule Scheduling state of the card
+     */
+    void setSchedule(CardId id, Schedule schedule);
 }

@@ -7,9 +7,11 @@ package io.github.anki4j.adapters.sqlite;
 
 import io.github.anki4j.Work;
 import io.github.anki4j.domain.Card;
+import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.DeckId;
 import io.github.anki4j.domain.NoteId;
 import io.github.anki4j.domain.NoteTypeId;
+import io.github.anki4j.domain.Schedule;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -68,4 +70,74 @@ final class CardOperationTest {
         }
     }
 
+    /**
+     * The scheduling state of a card is written and kept in the file.
+     *
+     * @throws Exception When the collection cannot be read
+     */
+    @Test
+    void writesTheSchedule() throws Exception {
+        final Path path = Fixture.legacy(new Work().directory("schedule"));
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            collection.editor().setSchedule(
+                new CardId(Fixture.CARD_ID),
+                Schedule.builder()
+                    .type(2)
+                    .queue(2)
+                    .due(100L)
+                    .interval(10L)
+                    .factor(2500)
+                    .repetitions(3)
+                    .lapses(1)
+                    .left(0)
+                    .originaldue(90L)
+                    .originaldeck(1L)
+                    .build()
+            );
+            Assertions.assertEquals(
+                2, collection.cards().get(0).getSchedule().getQueue()
+            );
+        }
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            final Schedule schedule = collection.cards().get(0).getSchedule();
+            Assertions.assertEquals(2, schedule.getType());
+            Assertions.assertEquals(2, schedule.getQueue());
+            Assertions.assertEquals(100L, schedule.getDue());
+            Assertions.assertEquals(10L, schedule.getInterval());
+            Assertions.assertEquals(2500, schedule.getFactor());
+            Assertions.assertEquals(3, schedule.getRepetitions());
+            Assertions.assertEquals(1, schedule.getLapses());
+            Assertions.assertEquals(90L, schedule.getOriginaldue());
+        }
+    }
+
+    /**
+     * An operation on a card that is not there is reported.
+     *
+     * @throws Exception When the collection cannot be read
+     */
+    @Test
+    void reportsAMissingCard() throws Exception {
+        final Path path = Fixture.legacy(new Work().directory("missingcard"));
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> collection.editor().setSchedule(
+                    new CardId(99L),
+                    Schedule.builder()
+                        .type(0)
+                        .queue(0)
+                        .due(0L)
+                        .interval(0L)
+                        .factor(0)
+                        .repetitions(0)
+                        .lapses(0)
+                        .left(0)
+                        .originaldue(0L)
+                        .originaldeck(0L)
+                        .build()
+                )
+            );
+        }
+    }
 }
