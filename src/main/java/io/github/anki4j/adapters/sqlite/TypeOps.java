@@ -35,11 +35,6 @@ final class TypeOps {
         .type(Object.class);
 
     /**
-     * Schema version from which the note types are kept in tables.
-     */
-    private static final int TABLE_VERSION = 15;
-
-    /**
      * Utility class.
      */
     private TypeOps() {
@@ -57,11 +52,6 @@ final class TypeOps {
         final int version,
         final List<NoteType> types
     ) {
-        if (version >= TypeOps.TABLE_VERSION) {
-            throw new IllegalStateException(
-                "note types kept in tables are not written yet"
-            );
-        }
         try (PreparedStatement statement = connection.prepareStatement(
             "update col set models = ?"
         )) {

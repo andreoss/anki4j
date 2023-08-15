@@ -38,6 +38,7 @@ final class TypeOperationTest {
             );
             Assertions.assertEquals(2, collection.noteTypes().size());
             Assertions.assertEquals("Spanish", type.getName());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(2, collection.noteTypes().size());
@@ -76,6 +77,7 @@ final class TypeOperationTest {
             Assertions.assertEquals(
                 "Basic renamed", collection.noteTypes().get(0).getName()
             );
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(
@@ -95,6 +97,7 @@ final class TypeOperationTest {
         try (SqliteCollection collection = new SqliteCollection(path)) {
             collection.types().deleteNoteType(new NoteTypeId(Fixture.NOTE_TYPE_ID));
             Assertions.assertTrue(collection.noteTypes().isEmpty());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertTrue(collection.noteTypes().isEmpty());

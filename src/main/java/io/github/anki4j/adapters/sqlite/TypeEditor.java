@@ -46,11 +46,6 @@ final class TypeEditor implements NoteTypes {
             .usn(type.getUsn())
             .build();
         this.state.getNotetypelist().add(added);
-        TypeOps.write(
-            this.state.getConnection(),
-            this.state.getVersion(),
-            this.state.getNotetypelist()
-        );
         return added;
     }
 
@@ -74,11 +69,6 @@ final class TypeEditor implements NoteTypes {
                         .modified(DeckOps.now())
                         .usn(type.getUsn())
                         .build()
-                );
-                TypeOps.write(
-                    this.state.getConnection(),
-                    this.state.getVersion(),
-                    types
                 );
                 return;
             }
@@ -106,10 +96,5 @@ final class TypeEditor implements NoteTypes {
                 String.format("no note type with id %d", id.getValue())
             );
         }
-        TypeOps.write(
-            this.state.getConnection(),
-            this.state.getVersion(),
-            this.state.getNotetypelist()
-        );
     }
 }

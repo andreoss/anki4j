@@ -42,6 +42,7 @@ final class NoteOperationTest {
             Assertions.assertEquals(2, collection.notes().size());
             Assertions.assertEquals(NoteOperationTest.FRONT, note.getFields().get(0));
             Assertions.assertFalse(note.getGuid().isEmpty());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(2, collection.notes().size());
@@ -81,6 +82,7 @@ final class NoteOperationTest {
                 List.of("salut"), collection.notes().get(0).getTags()
             );
             Assertions.assertEquals(3, collection.notes().get(0).getFlags());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             final Note note = collection.notes().get(0);
@@ -104,6 +106,7 @@ final class NoteOperationTest {
             collection.editor().deleteNote(new NoteId(Fixture.NOTE_ID));
             Assertions.assertTrue(collection.notes().isEmpty());
             Assertions.assertTrue(collection.cards().isEmpty());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertTrue(collection.notes().isEmpty());
@@ -156,10 +159,8 @@ final class NoteOperationTest {
         final SqliteCollection collection = new SqliteCollection(path);
         collection.close();
         Assertions.assertThrows(
-            IllegalStateException.class,
-            () -> collection.editor().addNote(
-                new NoteTypeId(Fixture.NOTE_TYPE_ID), List.of("a", "b")
-            )
+            java.io.IOException.class,
+            () -> collection.save(path.resolve("absent").resolve("new.anki2"))
         );
     }
 }

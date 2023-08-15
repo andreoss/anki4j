@@ -54,11 +54,6 @@ final class CollectionEditor implements Editor {
             .dynamic(false)
             .build();
         this.state.getDecklist().add(deck);
-        DeckOps.write(
-            this.state.getConnection(),
-            this.state.getVersion(),
-            this.state.getDecklist()
-        );
         return deck;
     }
 
@@ -73,11 +68,6 @@ final class CollectionEditor implements Editor {
             final Deck deck = this.state.getDecklist().get(index);
             if (deck.getId().getValue() == id.getValue()) {
                 this.state.getDecklist().set(index, deck.withName(name));
-                DeckOps.write(
-                    this.state.getConnection(),
-                    this.state.getVersion(),
-                    this.state.getDecklist()
-                );
                 return;
             }
         }
@@ -114,16 +104,8 @@ final class CollectionEditor implements Editor {
             final Card card = this.state.getCardlist().get(index);
             if (card.getDeck().getValue() == id.getValue()) {
                 this.state.getCardlist().set(index, card.withDeck(target));
-                MoveStore.movecard(
-                    this.state.getConnection(), card.getId(), target
-                );
             }
         }
-        DeckOps.write(
-            this.state.getConnection(),
-            this.state.getVersion(),
-            this.state.getDecklist()
-        );
     }
 
     /**
@@ -148,9 +130,6 @@ final class CollectionEditor implements Editor {
             final Card card = this.state.getCardlist().get(index);
             if (card.getNote().getValue() == id.getValue()) {
                 this.state.getCardlist().set(index, card.withDeck(deck));
-                MoveStore.movecard(
-                    this.state.getConnection(), card.getId(), deck
-                );
             }
         }
     }
@@ -166,7 +145,6 @@ final class CollectionEditor implements Editor {
             final Card card = this.state.getCardlist().get(index);
             if (card.getId().getValue() == id.getValue()) {
                 this.state.getCardlist().set(index, card.withDeck(deck));
-                MoveStore.movecard(this.state.getConnection(), id, deck);
                 return;
             }
         }
@@ -196,7 +174,6 @@ final class CollectionEditor implements Editor {
             .data("")
             .build();
         this.state.getNotelist().add(note);
-        NoteOps.write(this.state.getConnection(), note);
         return note;
     }
 
@@ -223,7 +200,6 @@ final class CollectionEditor implements Editor {
                 .get(index).getId().getValue();
             if (current == note.getId().getValue()) {
                 this.state.getNotelist().set(index, changed);
-                NoteOps.update(this.state.getConnection(), changed);
                 return;
             }
         }
@@ -259,7 +235,6 @@ final class CollectionEditor implements Editor {
                 this.state.getCardlist().remove(index);
             }
         }
-        NoteOps.remove(this.state.getConnection(), id);
     }
 
     @Override
@@ -299,7 +274,6 @@ final class CollectionEditor implements Editor {
                     .data("")
                     .build();
                 this.state.getCardlist().add(card);
-                CardOps.write(this.state.getConnection(), card);
             }
         }
     }
@@ -310,7 +284,6 @@ final class CollectionEditor implements Editor {
             final Card card = this.state.getCardlist().get(index);
             if (card.getId().getValue() == id.getValue()) {
                 this.state.getCardlist().set(index, card.withSchedule(schedule));
-                CardOps.schedule(this.state.getConnection(), id, schedule);
                 return;
             }
         }

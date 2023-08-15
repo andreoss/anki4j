@@ -39,6 +39,7 @@ final class DeckOperationTest {
             Assertions.assertEquals(3L, created.getId().getValue());
             Assertions.assertEquals(DeckOperationTest.DECK, created.getName());
             Assertions.assertEquals(3, collection.decks().size());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(3, collection.decks().size());
@@ -59,6 +60,7 @@ final class DeckOperationTest {
             Assertions.assertEquals(
                 "Spanish renamed", collection.decks().get(1).getName()
             );
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(
@@ -79,6 +81,7 @@ final class DeckOperationTest {
             collection.editor().deleteDeck(new DeckId(2L));
             Assertions.assertEquals(1, collection.decks().size());
             Assertions.assertEquals(1L, collection.cards().get(0).getDeck().getValue());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(1, collection.decks().size());
@@ -99,6 +102,7 @@ final class DeckOperationTest {
             Assertions.assertEquals(
                 1L, collection.cards().get(0).getDeck().getValue()
             );
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(
@@ -122,6 +126,7 @@ final class DeckOperationTest {
             Assertions.assertEquals(
                 1L, collection.cards().get(0).getDeck().getValue()
             );
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(
@@ -175,6 +180,7 @@ final class DeckOperationTest {
             );
             collection.editor().deleteDeck(created.getId());
             Assertions.assertEquals(1, collection.decks().size());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(1, collection.decks().size());
@@ -193,8 +199,8 @@ final class DeckOperationTest {
         final SqliteCollection collection = new SqliteCollection(path);
         collection.close();
         Assertions.assertThrows(
-            IllegalStateException.class,
-            () -> collection.editor().createDeck(DeckOperationTest.DECK)
+            java.io.IOException.class,
+            () -> collection.save(path.resolve("absent").resolve("new.anki2"))
         );
     }
 }

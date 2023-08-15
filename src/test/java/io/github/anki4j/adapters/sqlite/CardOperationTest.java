@@ -43,6 +43,7 @@ final class CardOperationTest {
             Assertions.assertEquals(2L, card.getDeck().getValue());
             Assertions.assertEquals(0, card.getOrdinal());
             Assertions.assertEquals(0, card.getSchedule().getQueue());
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             Assertions.assertEquals(2, collection.cards().size());
@@ -97,6 +98,7 @@ final class CardOperationTest {
             Assertions.assertEquals(
                 2, collection.cards().get(0).getSchedule().getQueue()
             );
+            collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
             final Schedule schedule = collection.cards().get(0).getSchedule();

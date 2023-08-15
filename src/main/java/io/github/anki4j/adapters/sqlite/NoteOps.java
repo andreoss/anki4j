@@ -63,14 +63,11 @@ final class NoteOps {
      * @return Identifier of the note
      */
     static String guid() {
-        long value = NoteOps.RANDOM.nextLong() & Long.MAX_VALUE;
+        long value = (NoteOps.RANDOM.nextLong() & Long.MAX_VALUE) | 1L;
         final StringBuilder builder = new StringBuilder();
         while (value > 0L) {
             builder.append(NoteOps.ALPHABET.charAt((int) (value % 91L)));
             value /= 91L;
-        }
-        if (builder.isEmpty()) {
-            builder.append(NoteOps.ALPHABET.charAt(0));
         }
         return builder.reverse().toString();
     }
@@ -169,63 +166,4 @@ final class NoteOps {
         }
     }
 
-    /**
-     * Write the values of a note.
-     *
-     * @param connection Connection to the database file
-     * @param note Note with its new values
-     */
-    static void update(final Connection connection, final Note note) {
-        try (PreparedStatement statement = connection.prepareStatement(
-            """
-            update notes
-            set mod = ?, tags = ?, flds = ?, sfld = ?, csum = ?, flags = ?
-            where id = ?
-            """
-        )) {
-            statement.setLong(1, note.getModified());
-            statement.setString(2, String.join(" ", note.getTags()));
-            statement.setString(3, NoteOps.join(note.getFields()));
-            statement.setString(4, NoteOps.sortfield(note.getFields()));
-            statement.setLong(5, note.getChecksum());
-            statement.setInt(6, note.getFlags());
-            statement.setLong(7, note.getId().getValue());
-            statement.executeUpdate();
-        } catch (final SQLException error) {
-            throw new IllegalStateException("cannot write the note", error);
-        }
-    }
-
-    /**
-     * Remove a note, its cards and their review log.
-     *
-     * @param connection Connection to the database file
-     * @param id Identifier of the note
-     */
-    static void remove(final Connection connection, final NoteId id) {
-        try (PreparedStatement statement = connection.prepareStatement(
-            "delete from cards where nid = ?"
-        )) {
-            statement.setLong(1, id.getValue());
-            statement.executeUpdate();
-        } catch (final SQLException error) {
-            throw new IllegalStateException("cannot remove the cards", error);
-        }
-        try (PreparedStatement statement = connection.prepareStatement(
-            "delete from revlog where cid in (select id from cards where nid = ?)"
-        )) {
-            statement.setLong(1, id.getValue());
-            statement.executeUpdate();
-        } catch (final SQLException error) {
-            throw new IllegalStateException("cannot remove the review log", error);
-        }
-        try (PreparedStatement statement = connection.prepareStatement(
-            "delete from notes where id = ?"
-        )) {
-            statement.setLong(1, id.getValue());
-            statement.executeUpdate();
-        } catch (final SQLException error) {
-            throw new IllegalStateException("cannot remove the note", error);
-        }
-    }
 }

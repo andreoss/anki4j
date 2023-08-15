@@ -12,6 +12,8 @@ import io.github.anki4j.domain.NoteType;
 import io.github.anki4j.ports.Collection;
 import io.github.anki4j.ports.Editor;
 import io.github.anki4j.ports.NoteTypes;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -69,6 +71,11 @@ abstract class CollectionBase implements Collection {
     @Override
     public NoteTypes types() {
         return new TypeEditor(this.state);
+    }
+
+    @Override
+    public void save(final Path path) throws IOException, SQLException {
+        CollectionSaver.save(this.state, path);
     }
 
     /**

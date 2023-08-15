@@ -9,6 +9,9 @@ import io.github.anki4j.domain.Card;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteType;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -66,4 +69,14 @@ public interface Collection {
      * @return Note types of the collection
      */
     NoteTypes types();
+
+    /**
+     * Write the collection to a file; the file is written beside the
+     * target and moved over it, so it is never half written.
+     *
+     * @param path Path of the file to write
+     * @throws IOException When the file cannot be written
+     * @throws SQLException When the file cannot be filled
+     */
+    void save(Path path) throws IOException, SQLException;
 }
