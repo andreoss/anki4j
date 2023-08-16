@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A collection of decks, notes, cards and note types.
@@ -79,4 +80,15 @@ public interface Collection {
      * @throws SQLException When the file cannot be filled
      */
     void save(Path path) throws IOException, SQLException;
+
+    /**
+     * Write the collection and its media to a packaged archive.
+     *
+     * @param archive Path of the archive to write
+     * @param media Media files, by name
+     * @throws IOException When the archive cannot be written
+     * @throws SQLException When the collection cannot be filled
+     */
+    void exportArchive(Path archive, Map<String, Path> media)
+        throws IOException, SQLException;
 }

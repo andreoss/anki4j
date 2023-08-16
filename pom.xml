@@ -25,7 +25,7 @@
     <lombok.version>1.18.22</lombok.version>
     <qulice.version>0.24.0</qulice.version>
     <jacoco.version>0.8.7</jacoco.version>
-    <pitest.version>1.7.3</pitest.version>
+    <pitest.version>1.7.4</pitest.version>
     <pitest.threshold>80</pitest.threshold>
     <coverage.threshold>0.961</coverage.threshold>
     <avaje.version>0.9</avaje.version>

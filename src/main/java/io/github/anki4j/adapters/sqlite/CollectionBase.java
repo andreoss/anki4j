@@ -5,6 +5,7 @@
  */
 package io.github.anki4j.adapters.sqlite;
 
+import io.github.anki4j.adapters.archive.ArchiveWriter;
 import io.github.anki4j.domain.Card;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.Note;
@@ -13,9 +14,11 @@ import io.github.anki4j.ports.Collection;
 import io.github.anki4j.ports.Editor;
 import io.github.anki4j.ports.NoteTypes;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contents of a collection file, read once and held in memory.
@@ -76,6 +79,22 @@ abstract class CollectionBase implements Collection {
     @Override
     public void save(final Path path) throws IOException, SQLException {
         CollectionSaver.save(this.state, path);
+    }
+
+    @Override
+    public void exportArchive(
+        final Path archive,
+        final Map<String, Path> media
+    ) throws IOException, SQLException {
+        final Path temp = archive.resolveSibling(
+            String.format("%s.collection", archive.getFileName())
+        );
+        try {
+            this.save(temp);
+            new ArchiveWriter(archive).write(temp, media);
+        } finally {
+            Files.deleteIfExists(temp);
+        }
     }
 
     /**
