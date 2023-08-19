@@ -43,6 +43,7 @@ final class CollectionFile {
         final CollectionReader reader = new CollectionReader(connection);
         return new CollectionState(
             connection,
+            path,
             reader.version(),
             reader.decks(),
             reader.noteTypes(),

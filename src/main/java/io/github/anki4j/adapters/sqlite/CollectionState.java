@@ -9,6 +9,7 @@ import io.github.anki4j.domain.Card;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteType;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.List;
 import lombok.Value;
@@ -25,6 +26,11 @@ class CollectionState {
      * Connection to the database file.
      */
     private Connection connection;
+
+    /**
+     * Path of the file the collection was read from.
+     */
+    private Path path;
 
     /**
      * Schema version of the collection.

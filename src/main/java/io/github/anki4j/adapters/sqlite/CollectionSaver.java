@@ -51,7 +51,7 @@ final class CollectionSaver {
         throws IOException, SQLException {
         final Path temp = CollectionSaver.temporary(target);
         try {
-            CollectionSaver.prepare(temp, target);
+            CollectionSaver.prepare(state, temp, target);
             CollectionSaver.fill(state, temp);
             Files.move(
                 temp, target,
@@ -75,34 +75,26 @@ final class CollectionSaver {
     }
 
     /**
-     * Make the file the collection is written to first.
+     * Make the file the collection is written to first, with the tables of
+     * the file it was read from.
      *
+     * @param state Contents of the collection
      * @param temp Path of the file
      * @param target Path of the file to write
      * @throws IOException When the file cannot be copied
-     * @throws SQLException When the file cannot be created
      */
     private static void prepare(
+        final CollectionState state,
         final Path temp,
         final Path target
-    ) throws IOException, SQLException {
+    ) throws IOException {
         Files.deleteIfExists(temp);
         if (Files.exists(target)) {
             Files.copy(target, temp, StandardCopyOption.COPY_ATTRIBUTES);
         } else {
-            final SQLiteDataSource source = new SQLiteDataSource();
-            source.setUrl(
-                String.format("jdbc:sqlite:%s", temp)
+            Files.copy(
+                state.getPath(), temp, StandardCopyOption.COPY_ATTRIBUTES
             );
-            try (Connection connection = source.getConnection();
-                Statement statement = connection.createStatement()) {
-                for (final String command
-                    : SqliteSchema.commands().split(";")) {
-                    if (!command.isBlank()) {
-                        statement.execute(command);
-                    }
-                }
-            }
         }
     }
 
