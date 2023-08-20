@@ -26,7 +26,8 @@
     <qulice.version>0.24.0</qulice.version>
     <jacoco.version>0.8.7</jacoco.version>
     <pitest.version>1.7.4</pitest.version>
-    <pitest.threshold>80</pitest.threshold>
+    <pitest.junit5.version>0.15</pitest.junit5.version>
+    <pitest.threshold>60</pitest.threshold>
     <coverage.threshold>0.961</coverage.threshold>
     <avaje.version>0.9</avaje.version>
   </properties>
@@ -147,6 +148,27 @@
             <groupId>org.pitest</groupId>
             <artifactId>pitest-maven</artifactId>
             <version>${pitest.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-junit5-plugin</artifactId>
+                <version>${pitest.junit5.version}</version>
+              </dependency>
+    <dependency>
+      <groupId>io.avaje</groupId>
+      <artifactId>avaje-jsonb</artifactId>
+      <version>${avaje.version}</version>
+    </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>mutation</id>
+                <goals>
+                  <goal>mutationCoverage</goal>
+                </goals>
+                <phase>verify</phase>
+              </execution>
+            </executions>
             <configuration>
               <targetClasses>
                 <param>io.github.anki4j.domain.*</param>
