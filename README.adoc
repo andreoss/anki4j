@@ -5,6 +5,8 @@ SQLite collection format.
 
 == Build
 
+Needs a Java 17 JDK.
+
 [source,bash]
 ----
 ./mvnw -B package

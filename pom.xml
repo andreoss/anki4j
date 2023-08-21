@@ -24,8 +24,8 @@
     <sqlite.version>3.36.0.3</sqlite.version>
     <lombok.version>1.18.22</lombok.version>
     <qulice.version>0.24.0</qulice.version>
-    <jacoco.version>0.8.7</jacoco.version>
-    <pitest.version>1.7.4</pitest.version>
+    <jacoco.version>0.8.8</jacoco.version>
+    <pitest.version>1.7.5</pitest.version>
     <pitest.junit5.version>0.15</pitest.junit5.version>
     <pitest.threshold>60</pitest.threshold>
     <coverage.threshold>0.961</coverage.threshold>
@@ -66,10 +66,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.10.0</version>
-        <configuration>
-          <proc>full</proc>
-        </configuration>
+        <version>3.10.1</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
