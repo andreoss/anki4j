@@ -15,7 +15,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class Deck {
+public final class Deck {
 
     /**
      * Identifier of the deck.

@@ -16,7 +16,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class NoteType {
+public final class NoteType {
 
     /**
      * Identifier of the note type.

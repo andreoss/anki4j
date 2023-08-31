@@ -15,7 +15,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class Card {
+public final class Card {
 
     /**
      * Identifier of the card.

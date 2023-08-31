@@ -16,7 +16,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class Check {
+public final class Check {
 
     /**
      * Ordinal of the field the check holds.

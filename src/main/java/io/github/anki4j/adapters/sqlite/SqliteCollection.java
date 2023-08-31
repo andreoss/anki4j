@@ -22,7 +22,7 @@ public final class SqliteCollection extends CollectionBase implements AutoClosea
      * @throws SQLException When the file cannot be read
      */
     public SqliteCollection(final Path path) throws SQLException {
-        this(CollectionFile.open(path, false));
+        this(new CollectionFile(path, false).open());
     }
 
     /**
@@ -34,7 +34,7 @@ public final class SqliteCollection extends CollectionBase implements AutoClosea
      */
     public SqliteCollection(final Path path, final boolean empty)
         throws SQLException {
-        this(CollectionFile.open(path, empty));
+        this(new CollectionFile(path, empty).open());
     }
 
     /**

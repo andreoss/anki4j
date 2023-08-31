@@ -15,7 +15,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class Schedule {
+public final class Schedule {
 
     /**
      * Type of the card.

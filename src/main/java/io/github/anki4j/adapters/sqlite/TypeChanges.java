@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @since 0.1.0
  */
-final class TypeEditor implements NoteTypes {
+final class TypeChanges implements NoteTypes {
 
     /**
      * Contents of the collection.
@@ -23,18 +23,34 @@ final class TypeEditor implements NoteTypes {
     private final CollectionState state;
 
     /**
+     * The models of the collection.
+     */
+    private final Models models;
+
+    /**
+     * The clock of the collection.
+     */
+    private final Clock clock;
+
+    /**
      * New editor of the note types.
      *
      * @param state Contents of the file
      */
-    TypeEditor(final CollectionState state) {
+    TypeChanges(final CollectionState state) {
         this.state = state;
+        this.models = new Models(
+            state.getConnection(),
+            state.getNotetypelist(),
+            state.getHeader().models()
+        );
+        this.clock = new Clock(System::currentTimeMillis);
     }
 
     @Override
     public NoteType addNoteType(final NoteType type) {
         final NoteType added = NoteType.builder()
-            .id(new NoteTypeId(TypeOps.nextid(this.state.getNotetypelist())))
+            .id(new NoteTypeId(this.models.nextid()))
             .name(type.getName())
             .fields(type.getFields())
             .templates(type.getTemplates())
@@ -42,7 +58,7 @@ final class TypeEditor implements NoteTypes {
             .css(type.getCss())
             .sortfield(type.getSortfield())
             .deck(type.getDeck())
-            .modified(DeckOps.now())
+            .modified(this.clock.now())
             .usn(type.getUsn())
             .build();
         this.state.getNotetypelist().add(added);
@@ -66,7 +82,7 @@ final class TypeEditor implements NoteTypes {
                         .css(type.getCss())
                         .sortfield(type.getSortfield())
                         .deck(type.getDeck())
-                        .modified(DeckOps.now())
+                        .modified(this.clock.now())
                         .usn(type.getUsn())
                         .build()
                 );

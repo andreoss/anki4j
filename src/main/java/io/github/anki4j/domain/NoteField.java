@@ -15,7 +15,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class NoteField {
+public final class NoteField {
 
     /**
      * Name of the field.

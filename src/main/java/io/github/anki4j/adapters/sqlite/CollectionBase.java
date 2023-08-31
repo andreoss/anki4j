@@ -5,7 +5,7 @@
  */
 package io.github.anki4j.adapters.sqlite;
 
-import io.github.anki4j.adapters.archive.ArchiveWriter;
+import io.github.anki4j.adapters.archive.ArchiveDraft;
 import io.github.anki4j.domain.Card;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.Note;
@@ -68,17 +68,17 @@ abstract class CollectionBase implements Collection {
 
     @Override
     public Editor editor() {
-        return new CollectionEditor(this.state);
+        return new CollectionChanges(this.state);
     }
 
     @Override
     public NoteTypes types() {
-        return new TypeEditor(this.state);
+        return new TypeChanges(this.state);
     }
 
     @Override
     public void save(final Path path) throws IOException, SQLException {
-        CollectionSaver.save(this.state, path);
+        new CollectionCopy(this.state, path).save();
     }
 
     @Override
@@ -91,7 +91,7 @@ abstract class CollectionBase implements Collection {
         );
         try {
             this.save(temp);
-            new ArchiveWriter(archive).write(temp, media);
+            new ArchiveDraft(archive).write(temp, media);
         } finally {
             Files.deleteIfExists(temp);
         }

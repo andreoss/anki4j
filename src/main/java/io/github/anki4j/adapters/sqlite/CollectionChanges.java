@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @since 0.1.0
  */
-final class CollectionEditor implements Editor {
+final class CollectionChanges implements Editor {
 
     /**
      * Contents of the collection.
@@ -31,12 +31,48 @@ final class CollectionEditor implements Editor {
     private final CollectionState state;
 
     /**
+     * The notes of the collection.
+     */
+    private final Notes notes;
+
+    /**
+     * The cards of the collection.
+     */
+    private final Cards cards;
+
+    /**
+     * The decks of the collection.
+     */
+    private final Decks decks;
+
+    /**
+     * The models of the collection.
+     */
+    private final Models models;
+
+    /**
+     * The clock of the collection.
+     */
+    private final Clock clock;
+
+    /**
      * New editor over the contents of a file.
      *
      * @param state Contents of the file
      */
-    CollectionEditor(final CollectionState state) {
+    CollectionChanges(final CollectionState state) {
         this.state = state;
+        this.notes = new Notes(state.getConnection(), state.getNotelist());
+        this.cards = new Cards(state.getConnection(), state.getCardlist());
+        this.decks = new Decks(
+            state.getConnection(), state.getDecklist(), state.getHeader().decks()
+        );
+        this.models = new Models(
+            state.getConnection(),
+            state.getNotetypelist(),
+            state.getHeader().models()
+        );
+        this.clock = new Clock(System::currentTimeMillis);
     }
 
     /**
@@ -47,9 +83,9 @@ final class CollectionEditor implements Editor {
      */
     public Deck createDeck(final String name) {
         final Deck deck = Deck.builder()
-            .id(new DeckId(DeckOps.nextid(this.state.getDecklist())))
+            .id(new DeckId(this.decks.nextid()))
             .name(name)
-            .modified(DeckOps.now())
+            .modified(this.clock.now())
             .usn(-1L)
             .dynamic(false)
             .build();
@@ -98,7 +134,7 @@ final class CollectionEditor implements Editor {
             );
         }
         final DeckId target = new DeckId(
-            DeckOps.defaultid(this.state.getDecklist())
+            this.decks.defaultid()
         );
         for (int index = 0; index < this.state.getCardlist().size(); index += 1) {
             final Card card = this.state.getCardlist().get(index);
@@ -162,14 +198,18 @@ final class CollectionEditor implements Editor {
      */
     public Note addNote(final NoteTypeId type, final List<String> fields) {
         final Note note = Note.builder()
-            .id(new NoteId(NoteOps.nextid(this.state.getNotelist())))
-            .guid(NoteOps.guid())
+            .id(new NoteId(this.notes.nextid()))
+            .guid(this.notes.guid())
             .notetype(type)
-            .modified(DeckOps.now())
+            .modified(this.clock.now())
             .usn(-1L)
             .tags(List.of())
             .fields(fields)
-            .checksum(NoteOps.checksum(NoteOps.sortfield(fields)))
+            .checksum(
+                new FieldValues(
+                    String.join(FieldValues.SEPARATOR, fields)
+                ).checksum()
+            )
             .flags(0)
             .data("")
             .build();
@@ -187,11 +227,15 @@ final class CollectionEditor implements Editor {
             .id(note.getId())
             .guid(note.getGuid())
             .notetype(note.getNotetype())
-            .modified(DeckOps.now())
+            .modified(this.clock.now())
             .usn(note.getUsn())
             .tags(note.getTags())
             .fields(note.getFields())
-            .checksum(NoteOps.checksum(NoteOps.sortfield(note.getFields())))
+            .checksum(
+                new FieldValues(
+                    String.join(FieldValues.SEPARATOR, note.getFields())
+                ).checksum()
+            )
             .flags(note.getFlags())
             .data(note.getData())
             .build();
@@ -239,22 +283,18 @@ final class CollectionEditor implements Editor {
 
     @Override
     public void generateCards(final NoteId id, final DeckId deck) {
-        final Note note = NoteOps.find(this.state.getNotelist(), id);
-        final NoteType type = TypeOps.find(
-            this.state.getNotetypelist(), note.getNotetype()
-        );
-        final long due = CardOps.position(this.state.getCardlist());
+        final Note note = this.notes.find(id);
+        final NoteType type = this.models.find(note.getNotetype());
+        final long due = this.cards.position();
         for (final NoteTemplate template : type.getTemplates()) {
-            final Card found = CardOps.find(
-                this.state.getCardlist(), id, template.getOrdinal()
-            );
+            final Card found = this.cards.find(id, template.getOrdinal());
             if (found == null) {
                 final Card card = Card.builder()
-                    .id(new CardId(CardOps.nextid(this.state.getCardlist())))
+                    .id(new CardId(this.cards.nextid()))
                     .note(id)
                     .deck(deck)
                     .ordinal(template.getOrdinal())
-                    .modified(DeckOps.now())
+                    .modified(this.clock.now())
                     .usn(-1L)
                     .schedule(
                         Schedule.builder()

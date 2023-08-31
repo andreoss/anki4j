@@ -15,7 +15,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class NoteTemplate {
+public final class NoteTemplate {
 
     /**
      * Name of the card template.

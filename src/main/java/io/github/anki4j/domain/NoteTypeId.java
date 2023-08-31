@@ -13,7 +13,7 @@ import lombok.Value;
  * @since 0.1.0
  */
 @Value
-public class NoteTypeId {
+public final class NoteTypeId {
 
     /**
      * Raw identifier.

@@ -16,7 +16,7 @@ import lombok.Value;
  */
 @Value
 @Builder
-public class Note {
+public final class Note {
 
     /**
      * Identifier of the note.

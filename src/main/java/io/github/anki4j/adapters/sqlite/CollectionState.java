@@ -38,6 +38,11 @@ class CollectionState {
     private int version;
 
     /**
+     * Header row of the collection.
+     */
+    private Header header;
+
+    /**
      * Decks of the collection.
      */
     private List<Deck> decklist;

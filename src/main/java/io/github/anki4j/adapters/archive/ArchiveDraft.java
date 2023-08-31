@@ -8,13 +8,11 @@ package io.github.anki4j.adapters.archive;
 import io.avaje.jsonb.JsonType;
 import io.avaje.jsonb.Jsonb;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -22,7 +20,7 @@ import java.util.zip.ZipOutputStream;
  *
  * @since 0.1.0
  */
-public final class ArchiveWriter {
+public final class ArchiveDraft {
 
     /**
      * The type of the documents.
@@ -51,7 +49,7 @@ public final class ArchiveWriter {
      *
      * @param archive Path of the archive to write
      */
-    public ArchiveWriter(final Path archive) {
+    public ArchiveDraft(final Path archive) {
         this.archive = archive;
     }
 
@@ -70,23 +68,19 @@ public final class ArchiveWriter {
             String.format("%s.tmp", this.archive.getFileName())
         );
         Files.deleteIfExists(temp);
-        try (ZipOutputStream zip = new ZipOutputStream(
+        try (ZipOutputStream stream = new ZipOutputStream(
             Files.newOutputStream(temp)
         )) {
-            ArchiveWriter.add(zip, ArchiveWriter.FILE, collection);
+            final Zip zip = new Zip(stream);
+            zip.add(ArchiveDraft.FILE, collection);
             final Map<String, Object> names = new LinkedHashMap<>();
             int number = 0;
             for (final Map.Entry<String, Path> entry : media.entrySet()) {
                 names.put(String.valueOf(number), entry.getKey());
-                ArchiveWriter.add(zip, String.valueOf(number), entry.getValue());
+                zip.add(String.valueOf(number), entry.getValue());
                 number += 1;
             }
-            zip.putNextEntry(new ZipEntry(ArchiveWriter.MAP));
-            zip.write(
-                ArchiveWriter.TYPE.toJson(names)
-                    .getBytes(StandardCharsets.UTF_8)
-            );
-            zip.closeEntry();
+            zip.text(ArchiveDraft.MAP, ArchiveDraft.TYPE.toJson(names));
             zip.finish();
         } catch (final IOException error) {
             Files.deleteIfExists(temp);
@@ -99,21 +93,4 @@ public final class ArchiveWriter {
         );
     }
 
-    /**
-     * Add a file to the archive.
-     *
-     * @param zip Archive being written
-     * @param name Name of the entry
-     * @param path Path of the file
-     * @throws IOException When the file cannot be added
-     */
-    private static void add(
-        final ZipOutputStream zip,
-        final String name,
-        final Path path
-    ) throws IOException {
-        zip.putNextEntry(new ZipEntry(name));
-        Files.copy(path, zip);
-        zip.closeEntry();
-    }
 }
