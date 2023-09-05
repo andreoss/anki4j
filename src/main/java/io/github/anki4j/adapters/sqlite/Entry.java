@@ -74,6 +74,12 @@ final class Entry {
         long number = fallback;
         if (found instanceof Number) {
             number = ((Number) found).longValue();
+        } else if (found instanceof String) {
+            try {
+                number = Long.parseLong(((String) found).trim());
+            } catch (final NumberFormatException error) {
+                number = fallback;
+            }
         }
         return number;
     }

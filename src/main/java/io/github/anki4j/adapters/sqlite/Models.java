@@ -210,7 +210,12 @@ final class Models {
     private List<NoteType> readdocument() {
         final List<NoteType> found = new ArrayList<>(0);
         for (final Entry entry : this.document.entries()) {
-            final long identifier = entry.number("id", 0L);
+            long identifier;
+            try {
+                identifier = Long.parseLong(entry.name().trim());
+            } catch (final NumberFormatException error) {
+                identifier = entry.number("id", 0L);
+            }
             found.add(
                 NoteType.builder()
                     .id(new NoteTypeId(identifier))
