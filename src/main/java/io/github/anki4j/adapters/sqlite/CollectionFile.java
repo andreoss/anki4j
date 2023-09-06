@@ -155,6 +155,11 @@ final class CollectionFile {
             }
         }
         final int version = header.version();
+        final Schema current = new Schema(version);
+        if (!current.supported()) {
+            connection.close();
+            throw new SQLException(current.report());
+        }
         return new CollectionState(
             connection,
             this.path,
