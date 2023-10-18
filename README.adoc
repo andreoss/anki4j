@@ -5,25 +5,25 @@ SQLite collection format.
 
 == Build
 
-Needs a Java 17 JDK.
+Needs a Java 17 JDK and Maven.
 
 [source,bash]
 ----
-./mvnw -B package
+mvn -B package
 ----
 
 == Test
 
 [source,bash]
 ----
-./mvnw -B test
+mvn -B test
 ----
 
 == Coverage
 
 [source,bash]
 ----
-./mvnw -B verify
+mvn -B verify
 ----
 
 == Use
@@ -33,6 +33,6 @@ Needs a Java 17 JDK.
 <dependency>
   <groupId>io.github.andreoss</groupId>
   <artifactId>anki4j</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.6.2</version>
 </dependency>
 ----
