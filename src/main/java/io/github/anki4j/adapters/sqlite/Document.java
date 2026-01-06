@@ -22,7 +22,7 @@ final class Document {
     /**
      * The type of a document.
      */
-    private static final JsonType<Object> TYPE = Jsonb.newBuilder()
+    private static final JsonType<Object> TYPE = Jsonb.builder()
         .build()
         .type(Object.class);
 
