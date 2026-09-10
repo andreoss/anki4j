@@ -36,23 +36,21 @@ final class Fixtures {
      * @return Note type
      */
     static NoteType basic() {
-        return NoteType.builder()
-            .id(new NoteTypeId(1L))
-            .name("Basic")
-            .fields(
-                List.of(
-                    NoteField.builder().name("Front").ordinal(0).build(),
-                    NoteField.builder().name("Back").ordinal(1).build()
-                )
-            )
-            .templates(List.of(Fixtures.template("Card 1", 0)))
-            .checks(List.of())
-            .css(".card {}")
-            .sortfield(0)
-            .deck(new DeckId(1L))
-            .modified(0L)
-            .usn(-1L)
-            .build();
+        return new NoteType(
+            new NoteTypeId(1L),
+            "Basic",
+            List.of(
+                new NoteField("Front", 0),
+                new NoteField("Back", 1)
+            ),
+            List.of(Fixtures.template("Card 1", 0)),
+            List.of(),
+            ".card {}",
+            0,
+            new DeckId(1L),
+            0L,
+            -1L
+        );
     }
 
     /**
@@ -61,32 +59,24 @@ final class Fixtures {
      * @return Note type
      */
     static NoteType pair() {
-        return NoteType.builder()
-            .id(new NoteTypeId(1L))
-            .name("Basic")
-            .fields(
-                List.of(
-                    NoteField.builder().name("Front").ordinal(0).build(),
-                    NoteField.builder().name("Back").ordinal(1).build()
-                )
-            )
-            .templates(
-                List.of(
-                    Fixtures.template("Card 1", 0),
-                    NoteTemplate.builder()
-                        .name("Card 2").ordinal(1)
-                        .question("{{Back}}")
-                        .answer("{{Back}}")
-                        .build()
-                )
-            )
-            .checks(List.of())
-            .css(".card {}")
-            .sortfield(0)
-            .deck(new DeckId(1L))
-            .modified(0L)
-            .usn(-1L)
-            .build();
+        return new NoteType(
+            new NoteTypeId(1L),
+            "Basic",
+            List.of(
+                new NoteField("Front", 0),
+                new NoteField("Back", 1)
+            ),
+            List.of(
+                Fixtures.template("Card 1", 0),
+                new NoteTemplate("Card 2", 1, "{{Back}}", "{{Back}}")
+            ),
+            List.of(),
+            ".card {}",
+            0,
+            new DeckId(1L),
+            0L,
+            -1L
+        );
     }
 
     /**
@@ -210,19 +200,9 @@ final class Fixtures {
             """;
     }
 
-    /**
-     * A card template of a note type.
-     *
-     * @param name Name of the template
-     * @param ordinal Ordinal of the template
-     * @return Card template
-     */
     private static NoteTemplate template(final String name, final int ordinal) {
-        return NoteTemplate.builder()
-            .name(name)
-            .ordinal(ordinal)
-            .question("{{Front}}")
-            .answer("{{FrontSide}}")
-            .build();
+        return new NoteTemplate(
+            name, ordinal, "{{Front}}", "{{FrontSide}}"
+        );
     }
 }

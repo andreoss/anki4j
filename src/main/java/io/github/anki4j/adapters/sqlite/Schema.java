@@ -20,28 +20,6 @@ package io.github.anki4j.adapters.sqlite;
 final class Schema {
 
     /**
-     * The oldest schema the reference implementation opens.
-     */
-    private static final int OLDEST = 11;
-
-    /**
-     * The newest schema the reference implementation opens.
-     */
-    private static final int NEWEST = 18;
-
-    /**
-     * The first schema the reference implementation refuses between the
-     * oldest and the newest.
-     */
-    private static final int REFUSED_FIRST = 12;
-
-    /**
-     * The last schema the reference implementation refuses between the
-     * oldest and the newest.
-     */
-    private static final int REFUSED_LAST = 13;
-
-    /**
      * Version of the schema.
      */
     private final int version;
@@ -61,10 +39,8 @@ final class Schema {
      * @return True when the schema is opened
      */
     boolean supported() {
-        final boolean refused = this.version >= Schema.REFUSED_FIRST
-            && this.version <= Schema.REFUSED_LAST;
-        return !refused && this.version >= Schema.OLDEST
-            && this.version <= Schema.NEWEST;
+        return !(this.version >= 12 && this.version <= 13)
+            && this.version >= 11 && this.version <= 18;
     }
 
     /**

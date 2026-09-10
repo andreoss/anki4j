@@ -32,22 +32,40 @@ final class TypeOperationTest {
     @Test
     void addsANoteType() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("addtype"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final NoteType type = collection.types().addNoteType(
-                TypeOperationTest.type("Spanish")
-            );
-            Assertions.assertEquals(2, collection.noteTypes().size());
-            Assertions.assertEquals("Spanish", type.getName());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(2, collection.noteTypes().size());
-            final NoteType type = collection.noteTypes().get(1);
-            Assertions.assertEquals("Spanish", type.getName());
-            Assertions.assertEquals(2, type.getFields().size());
-            Assertions.assertEquals(1, type.getTemplates().size());
-            Assertions.assertEquals(".card {}", type.getCss());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    final NoteType type = collection.types().addNoteType(
+                        TypeOperationTest.type("Spanish")
+                    );
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            2, collection.noteTypes().size()
+                        ),
+                        () -> Assertions.assertEquals("Spanish", type.getName())
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertEquals(
+                        2, collection.noteTypes().size()
+                    );
+                    final NoteType type = collection.noteTypes().get(1);
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals("Spanish", type.getName()),
+                        () -> Assertions.assertEquals(
+                            2, type.getFields().size()
+                        ),
+                        () -> Assertions.assertEquals(
+                            1, type.getTemplates().size()
+                        ),
+                        () -> Assertions.assertEquals(".card {}", type.getCss())
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -58,32 +76,10 @@ final class TypeOperationTest {
     @Test
     void updatesANoteType() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("updatetype"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final NoteType type = collection.noteTypes().get(0);
-            collection.types().updateNoteType(
-                NoteType.builder()
-                    .id(type.getId())
-                    .name("Basic renamed")
-                    .fields(type.getFields())
-                    .templates(type.getTemplates())
-                    .checks(type.getChecks())
-                    .css(type.getCss())
-                    .sortfield(type.getSortfield())
-                    .deck(type.getDeck())
-                    .modified(type.getModified())
-                    .usn(type.getUsn())
-                    .build()
-            );
-            Assertions.assertEquals(
-                "Basic renamed", collection.noteTypes().get(0).getName()
-            );
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(
-                "Basic renamed", collection.noteTypes().get(0).getName()
-            );
-        }
+        Assertions.assertAll(
+            () -> TypeOperationTest.writeType(path),
+            () -> TypeOperationTest.readType(path)
+        );
     }
 
     /**
@@ -94,14 +90,22 @@ final class TypeOperationTest {
     @Test
     void deletesANoteType() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("deletetype"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            collection.types().deleteNoteType(new NoteTypeId(Fixture.NOTE_TYPE_ID));
-            Assertions.assertTrue(collection.noteTypes().isEmpty());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertTrue(collection.noteTypes().isEmpty());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    collection.types().deleteNoteType(
+                        new NoteTypeId(Fixture.NOTE_TYPE_ID)
+                    );
+                    Assertions.assertTrue(collection.noteTypes().isEmpty());
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertTrue(collection.noteTypes().isEmpty());
+                }
+            }
+        );
     }
 
     /**
@@ -111,8 +115,11 @@ final class TypeOperationTest {
      */
     @Test
     void reportsAMissingNoteType() throws Exception {
-        final Path path = Fixture.legacy(new Work().directory("missingtype"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                Fixture.legacy(new Work().directory("missingtype"))
+            )
+        ) {
             Assertions.assertThrows(
                 IllegalArgumentException.class,
                 () -> collection.types().deleteNoteType(new NoteTypeId(99L))
@@ -126,38 +133,51 @@ final class TypeOperationTest {
         }
     }
 
-    /**
-     * A note type with the values the tests need.
-     *
-     * @param name Name of the note type
-     * @return Note type
-     */
     private static NoteType type(final String name) {
-        return NoteType.builder()
-            .id(new NoteTypeId(1L))
-            .name(name)
-            .fields(
-                List.of(
-                    NoteField.builder().name("Front").ordinal(0).build(),
-                    NoteField.builder().name("Back").ordinal(1).build()
+        return new NoteType(
+            new NoteTypeId(1L),
+            name,
+            List.of(
+                new NoteField("Front", 0),
+                new NoteField("Back", 1)
+            ),
+            List.of(
+                new NoteTemplate(
+                    "Card 1", 0, "{{Front}}", "{{FrontSide}}"
                 )
-            )
-            .templates(
-                List.of(
-                    NoteTemplate.builder()
-                        .name("Card 1")
-                        .ordinal(0)
-                        .question("{{Front}}")
-                        .answer("{{FrontSide}}")
-                        .build()
+            ),
+            List.of(new Check(0, "any", List.of("0"))),
+            ".card {}",
+            0,
+            new DeckId(1L),
+            0L,
+            -1L
+        );
+    }
+
+    private static void writeType(final Path path) throws Exception {
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            final NoteType type = collection.noteTypes().get(0);
+            collection.types().updateNoteType(
+                new NoteType(
+                    type.getId(), "Basic renamed", type.getFields(),
+                    type.getTemplates(), type.getChecks(), type.getCss(),
+                    type.getSortfield(), type.getDeck(),
+                    type.getModified(), type.getUsn()
                 )
-            )
-            .checks(List.of(Check.builder().field(0).kind("any").values(List.of("0")).build()))
-            .css(".card {}")
-            .sortfield(0)
-            .deck(new DeckId(1L))
-            .modified(0L)
-            .usn(-1L)
-            .build();
+            );
+            Assertions.assertEquals(
+                "Basic renamed", collection.noteTypes().get(0).getName()
+            );
+            collection.save(path);
+        }
+    }
+
+    private static void readType(final Path path) throws Exception {
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            Assertions.assertEquals(
+                "Basic renamed", collection.noteTypes().get(0).getName()
+            );
+        }
     }
 }

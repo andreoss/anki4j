@@ -92,9 +92,11 @@ final class Fixture {
             Assertions.assertTrue(created.schemaVersion() > 0);
         }
         try (Connection connection = Fixture.connect(path)) {
-            try (PreparedStatement statement = connection.prepareStatement(
-                "update col set ver = 11, models = ?, decks = ?"
-            )) {
+            try (
+                PreparedStatement statement = connection.prepareStatement(
+                    "update col set ver = 11, models = ?, decks = ?"
+                )
+            ) {
                 statement.setString(1, Fixture.MODELS);
                 statement.setString(2, Fixture.DECKS);
                 statement.executeUpdate();
@@ -120,8 +122,10 @@ final class Fixture {
         try (SqliteCollection created = new SqliteCollection(path, true)) {
             Assertions.assertTrue(created.schemaVersion() > 0);
         }
-        try (Connection connection = Fixture.connect(path);
-            Statement statement = connection.createStatement()) {
+        try (
+            Connection connection = Fixture.connect(path);
+            Statement statement = connection.createStatement()
+        ) {
             statement.executeUpdate(
                 "update col set ver = 15, models = '{}', decks = '{}'"
             );
@@ -223,7 +227,7 @@ final class Fixture {
             """
             insert into notes values (
                 1700000000000, 'guid-1', 1600000000000, 7, -1,
-                'greeting spanish', 'hola\u001Fhello', 0, 12345, 0, ''
+                'greeting spanish', 'holahello', 0, 12345, 0, ''
             )
             """
         );

@@ -56,8 +56,8 @@ final class Entry {
     String text(final String member) {
         final Object found = this.members.get(member);
         String text = "";
-        if (found instanceof String) {
-            text = (String) found;
+        if (found instanceof final String word) {
+            text = word;
         }
         return text;
     }
@@ -72,11 +72,11 @@ final class Entry {
     long number(final String member, final long fallback) {
         final Object found = this.members.get(member);
         long number = fallback;
-        if (found instanceof Number) {
-            number = ((Number) found).longValue();
-        } else if (found instanceof String) {
+        if (found instanceof final Number count) {
+            number = count.longValue();
+        } else if (found instanceof final String word) {
             try {
-                number = Long.parseLong(((String) found).trim());
+                number = Long.parseLong(word.trim());
             } catch (final NumberFormatException error) {
                 number = fallback;
             }

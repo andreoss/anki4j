@@ -9,6 +9,7 @@ import io.github.anki4j.Work;
 import io.github.anki4j.domain.Note;
 import io.github.anki4j.domain.NoteId;
 import io.github.anki4j.domain.NoteTypeId;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -34,24 +35,39 @@ final class NoteOperationTest {
     @Test
     void addsANote() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("addnote"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final Note note = collection.editor().addNote(
-                new NoteTypeId(Fixture.NOTE_TYPE_ID),
-                List.of(NoteOperationTest.FRONT, "hello")
-            );
-            Assertions.assertEquals(2, collection.notes().size());
-            Assertions.assertEquals(NoteOperationTest.FRONT, note.getFields().get(0));
-            Assertions.assertFalse(note.getGuid().isEmpty());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(2, collection.notes().size());
-            final Note note = collection.notes().get(1);
-            Assertions.assertEquals(
-                List.of(NoteOperationTest.FRONT, "hello"), note.getFields()
-            );
-            Assertions.assertTrue(note.getChecksum() > 0L);
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    final Note note = collection.editor().addNote(
+                        new NoteTypeId(Fixture.NOTE_TYPE_ID),
+                        List.of(NoteOperationTest.FRONT, "hello")
+                    );
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            2, collection.notes().size()
+                        ),
+                        () -> Assertions.assertEquals(
+                            NoteOperationTest.FRONT, note.getFields().get(0)
+                        ),
+                        () -> Assertions.assertFalse(note.getGuid().isEmpty())
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertEquals(2, collection.notes().size());
+                    final Note note = collection.notes().get(1);
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            List.of(NoteOperationTest.FRONT, "hello"),
+                            note.getFields()
+                        ),
+                        () -> Assertions.assertTrue(note.getChecksum() > 0L)
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -62,36 +78,10 @@ final class NoteOperationTest {
     @Test
     void updatesANote() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("updatenote"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final Note note = collection.notes().get(0);
-            collection.editor().updateNote(
-                Note.builder()
-                    .id(note.getId())
-                    .guid(note.getGuid())
-                    .notetype(note.getNotetype())
-                    .modified(note.getModified())
-                    .usn(note.getUsn())
-                    .tags(List.of("salut"))
-                    .fields(List.of(NoteOperationTest.FRONT, "hello"))
-                    .checksum(note.getChecksum())
-                    .flags(3)
-                    .data(note.getData())
-                    .build()
-            );
-            Assertions.assertEquals(
-                List.of("salut"), collection.notes().get(0).getTags()
-            );
-            Assertions.assertEquals(3, collection.notes().get(0).getFlags());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final Note note = collection.notes().get(0);
-            Assertions.assertEquals(List.of("salut"), note.getTags());
-            Assertions.assertEquals(
-                List.of(NoteOperationTest.FRONT, "hello"), note.getFields()
-            );
-            Assertions.assertEquals(3, note.getFlags());
-        }
+        Assertions.assertAll(
+            () -> NoteOperationTest.writeNote(path),
+            () -> NoteOperationTest.readNote(path)
+        );
     }
 
     /**
@@ -102,16 +92,26 @@ final class NoteOperationTest {
     @Test
     void deletesANote() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("deletenote"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            collection.editor().deleteNote(new NoteId(Fixture.NOTE_ID));
-            Assertions.assertTrue(collection.notes().isEmpty());
-            Assertions.assertTrue(collection.cards().isEmpty());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertTrue(collection.notes().isEmpty());
-            Assertions.assertTrue(collection.cards().isEmpty());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    collection.editor().deleteNote(new NoteId(Fixture.NOTE_ID));
+                    Assertions.assertAll(
+                        () -> Assertions.assertTrue(collection.notes().isEmpty()),
+                        () -> Assertions.assertTrue(collection.cards().isEmpty())
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertAll(
+                        () -> Assertions.assertTrue(collection.notes().isEmpty()),
+                        () -> Assertions.assertTrue(collection.cards().isEmpty())
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -121,8 +121,11 @@ final class NoteOperationTest {
      */
     @Test
     void reportsAMissingNote() throws Exception {
-        final Path path = Fixture.legacy(new Work().directory("missingnote"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                Fixture.legacy(new Work().directory("missingnote"))
+            )
+        ) {
             Assertions.assertThrows(
                 IllegalArgumentException.class,
                 () -> collection.editor().deleteNote(new NoteId(99L))
@@ -131,18 +134,13 @@ final class NoteOperationTest {
             Assertions.assertThrows(
                 IllegalArgumentException.class,
                 () -> collection.editor().updateNote(
-                    Note.builder()
-                        .id(new NoteId(99L))
-                        .guid(note.getGuid())
-                        .notetype(note.getNotetype())
-                        .modified(note.getModified())
-                        .usn(note.getUsn())
-                        .tags(note.getTags())
-                        .fields(note.getFields())
-                        .checksum(note.getChecksum())
-                        .flags(note.getFlags())
-                        .data(note.getData())
-                        .build()
+                    new Note(
+                        new NoteId(99L), note.getGuid(),
+                        note.getNotetype(), note.getModified(),
+                        note.getUsn(), note.getTags(), note.getFields(),
+                        note.getChecksum(), note.getFlags(),
+                        note.getData()
+                    )
                 )
             );
         }
@@ -159,8 +157,44 @@ final class NoteOperationTest {
         final SqliteCollection collection = new SqliteCollection(path);
         collection.close();
         Assertions.assertThrows(
-            java.io.IOException.class,
+            IOException.class,
             () -> collection.save(path.resolve("absent").resolve("new.anki2"))
         );
+    }
+
+    private static void writeNote(final Path path) throws Exception {
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            final Note note = collection.notes().get(0);
+            collection.editor().updateNote(
+                new Note(
+                    note.getId(), note.getGuid(), note.getNotetype(),
+                    note.getModified(), note.getUsn(), List.of("salut"),
+                    List.of(NoteOperationTest.FRONT, "hello"),
+                    note.getChecksum(), 3, note.getData()
+                )
+            );
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(
+                    List.of("salut"), collection.notes().get(0).getTags()
+                ),
+                () -> Assertions.assertEquals(
+                    3, collection.notes().get(0).getFlags()
+                )
+            );
+            collection.save(path);
+        }
+    }
+
+    private static void readNote(final Path path) throws Exception {
+        try (SqliteCollection collection = new SqliteCollection(path)) {
+            final Note note = collection.notes().get(0);
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(List.of("salut"), note.getTags()),
+                () -> Assertions.assertEquals(
+                    List.of(NoteOperationTest.FRONT, "hello"), note.getFields()
+                ),
+                () -> Assertions.assertEquals(3, note.getFlags())
+            );
+        }
     }
 }

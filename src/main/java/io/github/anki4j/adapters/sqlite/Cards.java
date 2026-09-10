@@ -54,40 +54,41 @@ final class Cards {
      */
     List<Card> read() throws SQLException {
         final List<Card> found = new ArrayList<>(0);
-        final String query = """
-            select id, nid, did, ord, mod, usn, type, queue, due, ivl,
-                factor, reps, lapses, left, odue, odid, flags, data
-            from cards
-            order by id
-            """;
-        try (Statement statement = this.connection.createStatement();
-            ResultSet rows = statement.executeQuery(query)) {
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet rows = statement.executeQuery(
+                """
+                select id, nid, did, ord, mod, usn, type, queue, due, ivl,
+                    factor, reps, lapses, left, odue, odid, flags, data
+                from cards
+                order by id
+                """
+            )
+        ) {
             while (rows.next()) {
                 found.add(
-                    Card.builder()
-                        .id(new CardId(rows.getLong("id")))
-                        .note(new NoteId(rows.getLong("nid")))
-                        .deck(new DeckId(rows.getLong("did")))
-                        .ordinal(rows.getInt("ord"))
-                        .modified(rows.getLong("mod"))
-                        .usn(rows.getLong("usn"))
-                        .schedule(
-                            Schedule.builder()
-                                .type(rows.getInt("type"))
-                                .queue(rows.getInt("queue"))
-                                .due(rows.getLong("due"))
-                                .interval(rows.getLong("ivl"))
-                                .factor(rows.getInt("factor"))
-                                .repetitions(rows.getInt("reps"))
-                                .lapses(rows.getInt("lapses"))
-                                .left(rows.getInt("left"))
-                                .originaldue(rows.getLong("odue"))
-                                .originaldeck(rows.getLong("odid"))
-                                .build()
-                        )
-                        .flags(rows.getInt("flags"))
-                        .data(rows.getString("data"))
-                        .build()
+                    new Card(
+                        new CardId(rows.getLong("id")),
+                        new NoteId(rows.getLong("nid")),
+                        new DeckId(rows.getLong("did")),
+                        rows.getInt("ord"),
+                        rows.getLong("mod"),
+                        rows.getLong("usn"),
+                        new Schedule(
+                            rows.getInt("type"),
+                            rows.getInt("queue"),
+                            rows.getLong("due"),
+                            rows.getLong("ivl"),
+                            rows.getInt("factor"),
+                            rows.getInt("reps"),
+                            rows.getInt("lapses"),
+                            rows.getInt("left"),
+                            rows.getLong("odue"),
+                            rows.getLong("odid")
+                        ),
+                        rows.getInt("flags"),
+                        rows.getString("data")
+                    )
                 );
             }
         }
@@ -100,14 +101,16 @@ final class Cards {
      * @param card Card to write
      */
     void write(final Card card) {
-        try (PreparedStatement statement = this.connection.prepareStatement(
-            """
-            insert into cards (
-                id, nid, did, ord, mod, usn, type, queue, due, ivl, factor,
-                reps, lapses, left, odue, odid, flags, data
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-        )) {
+        try (
+            PreparedStatement statement = this.connection.prepareStatement(
+                """
+                insert into cards (
+                    id, nid, did, ord, mod, usn, type, queue, due, ivl, factor,
+                    reps, lapses, left, odue, odid, flags, data
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+            )
+        ) {
             final Schedule schedule = card.getSchedule();
             statement.setLong(1, card.getId().getValue());
             statement.setLong(2, card.getNote().getValue());
@@ -170,10 +173,7 @@ final class Cards {
      * @param ordinal Ordinal of the template
      * @return Card of the note, null when it is not there
      */
-    Card find(
-        final NoteId note,
-        final int ordinal
-    ) {
+    Card find(final NoteId note, final int ordinal) {
         Card found = null;
         for (final Card card : this.cardlist) {
             if (card.getNote().getValue() == note.getValue()

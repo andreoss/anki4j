@@ -21,7 +21,7 @@ final class FieldValues {
     /**
      * Character between the field values of a note.
      */
-    static final String SEPARATOR = "\u001F";
+    static final String SEPARATOR = "";
 
     /**
      * Text of the field values.

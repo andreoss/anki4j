@@ -24,11 +24,6 @@ import java.sql.SQLException;
 final class Report {
 
     /**
-     * Size of the report of one collection.
-     */
-    private static final int SIZE = 1024;
-
-    /**
      * Utility class.
      */
     private Report() {
@@ -43,7 +38,7 @@ final class Report {
      */
     static String text(final Path path) throws SQLException {
         try (SqliteCollection collection = new SqliteCollection(path)) {
-            final StringBuilder report = new StringBuilder(Report.SIZE)
+            final StringBuilder report = new StringBuilder(1024)
                 .append(collection.schemaVersion()).append('\n');
             for (final Deck deck : collection.decks()) {
                 report.append("deck ").append(deck.getId().getValue())
@@ -71,7 +66,7 @@ final class Report {
                     .append('|').append(note.getGuid())
                     .append('|').append(note.getNotetype().getValue())
                     .append('|').append(String.join(" ", note.getTags()))
-                    .append('|').append(String.join("\u001F", note.getFields()))
+                    .append('|').append(String.join("", note.getFields()))
                     .append('|').append(note.getChecksum())
                     .append('|').append(note.getFlags()).append('\n');
             }

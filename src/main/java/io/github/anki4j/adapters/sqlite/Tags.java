@@ -42,9 +42,8 @@ final class Tags {
     List<String> values() {
         List<String> values = List.of();
         if (this.text != null && !this.text.isBlank()) {
-            values = Arrays.asList(this.text.split(Tags.SEPARATOR));
+            values = Arrays.asList(this.text.split(Tags.SEPARATOR, -1));
         }
         return values;
     }
-
 }

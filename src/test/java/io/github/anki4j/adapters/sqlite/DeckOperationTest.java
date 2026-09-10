@@ -10,6 +10,7 @@ import io.github.anki4j.domain.CardId;
 import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
 import io.github.anki4j.domain.NoteId;
+import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,17 +35,40 @@ final class DeckOperationTest {
     @Test
     void createsADeck() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("create"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final Deck created = collection.editor().createDeck(DeckOperationTest.DECK);
-            Assertions.assertEquals(3L, created.getId().getValue());
-            Assertions.assertEquals(DeckOperationTest.DECK, created.getName());
-            Assertions.assertEquals(3, collection.decks().size());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(3, collection.decks().size());
-            Assertions.assertEquals(DeckOperationTest.DECK, collection.decks().get(2).getName());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    final Deck created = collection.editor().createDeck(
+                        DeckOperationTest.DECK
+                    );
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            3L, created.getId().getValue()
+                        ),
+                        () -> Assertions.assertEquals(
+                            DeckOperationTest.DECK, created.getName()
+                        ),
+                        () -> Assertions.assertEquals(
+                            3, collection.decks().size()
+                        )
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            3, collection.decks().size()
+                        ),
+                        () -> Assertions.assertEquals(
+                            DeckOperationTest.DECK,
+                            collection.decks().get(2).getName()
+                        )
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -55,18 +79,26 @@ final class DeckOperationTest {
     @Test
     void renamesADeck() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("rename"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            collection.editor().renameDeck(new DeckId(2L), "Spanish renamed");
-            Assertions.assertEquals(
-                "Spanish renamed", collection.decks().get(1).getName()
-            );
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(
-                "Spanish renamed", collection.decks().get(1).getName()
-            );
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    collection.editor().renameDeck(
+                        new DeckId(2L), "Spanish renamed"
+                    );
+                    Assertions.assertEquals(
+                        "Spanish renamed", collection.decks().get(1).getName()
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertEquals(
+                        "Spanish renamed", collection.decks().get(1).getName()
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -77,16 +109,34 @@ final class DeckOperationTest {
     @Test
     void deletesADeck() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("delete"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            collection.editor().deleteDeck(new DeckId(2L));
-            Assertions.assertEquals(1, collection.decks().size());
-            Assertions.assertEquals(1L, collection.cards().get(0).getDeck().getValue());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(1, collection.decks().size());
-            Assertions.assertEquals(1L, collection.cards().get(0).getDeck().getValue());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    collection.editor().deleteDeck(new DeckId(2L));
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            1, collection.decks().size()
+                        ),
+                        () -> Assertions.assertEquals(
+                            1L, collection.cards().get(0).getDeck().getValue()
+                        )
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            1, collection.decks().size()
+                        ),
+                        () -> Assertions.assertEquals(
+                            1L, collection.cards().get(0).getDeck().getValue()
+                        )
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -97,18 +147,26 @@ final class DeckOperationTest {
     @Test
     void movesANote() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("movenote"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            collection.editor().moveNote(new NoteId(Fixture.NOTE_ID), new DeckId(1L));
-            Assertions.assertEquals(
-                1L, collection.cards().get(0).getDeck().getValue()
-            );
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(
-                1L, collection.cards().get(0).getDeck().getValue()
-            );
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    collection.editor().moveNote(
+                        new NoteId(Fixture.NOTE_ID), new DeckId(1L)
+                    );
+                    Assertions.assertEquals(
+                        1L, collection.cards().get(0).getDeck().getValue()
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertEquals(
+                        1L, collection.cards().get(0).getDeck().getValue()
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -119,20 +177,26 @@ final class DeckOperationTest {
     @Test
     void movesACard() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("movecard"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            collection.editor().moveCard(
-                new CardId(Fixture.CARD_ID), new DeckId(1L)
-            );
-            Assertions.assertEquals(
-                1L, collection.cards().get(0).getDeck().getValue()
-            );
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(
-                1L, collection.cards().get(0).getDeck().getValue()
-            );
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    collection.editor().moveCard(
+                        new CardId(Fixture.CARD_ID), new DeckId(1L)
+                    );
+                    Assertions.assertEquals(
+                        1L, collection.cards().get(0).getDeck().getValue()
+                    );
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertEquals(
+                        1L, collection.cards().get(0).getDeck().getValue()
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -142,8 +206,11 @@ final class DeckOperationTest {
      */
     @Test
     void reportsMissingItems() throws Exception {
-        final Path path = Fixture.legacy(new Work().directory("missing"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                Fixture.legacy(new Work().directory("missing"))
+            )
+        ) {
             Assertions.assertThrows(
                 IllegalArgumentException.class,
                 () -> collection.editor().renameDeck(new DeckId(99L), "None")
@@ -171,21 +238,38 @@ final class DeckOperationTest {
     @Test
     void createsADeckInTables() throws Exception {
         final Path path = Fixture.tabular(new Work().directory("tables"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            final Deck created = collection.editor().createDeck(DeckOperationTest.DECK);
-            Assertions.assertEquals(2L, created.getId().getValue());
-            collection.editor().renameDeck(created.getId(), "French renamed");
-            Assertions.assertEquals(
-                "French renamed", collection.decks().get(1).getName()
-            );
-            collection.editor().deleteDeck(created.getId());
-            Assertions.assertEquals(1, collection.decks().size());
-            collection.save(path);
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(1, collection.decks().size());
-            Assertions.assertEquals("Default", collection.decks().get(0).getName());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    final Deck created = collection.editor().createDeck(
+                        DeckOperationTest.DECK
+                    );
+                    Assertions.assertEquals(2L, created.getId().getValue());
+                    collection.editor().renameDeck(
+                        created.getId(), "French renamed"
+                    );
+                    Assertions.assertEquals(
+                        "French renamed",
+                        collection.decks().get(1).getName()
+                    );
+                    collection.editor().deleteDeck(created.getId());
+                    Assertions.assertEquals(1, collection.decks().size());
+                    collection.save(path);
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertAll(
+                        () -> Assertions.assertEquals(
+                            1, collection.decks().size()
+                        ),
+                        () -> Assertions.assertEquals(
+                            "Default", collection.decks().get(0).getName()
+                        )
+                    );
+                }
+            }
+        );
     }
 
     /**
@@ -199,7 +283,7 @@ final class DeckOperationTest {
         final SqliteCollection collection = new SqliteCollection(path);
         collection.close();
         Assertions.assertThrows(
-            java.io.IOException.class,
+            IOException.class,
             () -> collection.save(path.resolve("absent").resolve("new.anki2"))
         );
     }

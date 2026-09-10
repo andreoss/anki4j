@@ -61,44 +61,64 @@ final class CollectionChanges implements Editor {
      * @param state Contents of the file
      */
     CollectionChanges(final CollectionState state) {
-        this.state = state;
-        this.notes = new Notes(state.getConnection(), state.getNotelist());
-        this.cards = new Cards(state.getConnection(), state.getCardlist());
-        this.decks = new Decks(
-            state.getConnection(), state.getDecklist(), state.getHeader().decks()
+        this(
+            state,
+            new Notes(state.getConnection(), state.getNotelist()),
+            new Cards(state.getConnection(), state.getCardlist()),
+            new Decks(
+                state.getConnection(),
+                state.getDecklist(),
+                state.getHeader().decks()
+            ),
+            new Models(
+                state.getConnection(),
+                state.getNotetypelist(),
+                state.getHeader().models()
+            ),
+            new Clock(System::currentTimeMillis)
         );
-        this.models = new Models(
-            state.getConnection(),
-            state.getNotetypelist(),
-            state.getHeader().models()
-        );
-        this.clock = new Clock(System::currentTimeMillis);
     }
 
     /**
-     * Create a deck.
+     * New editor over the contents of a file.
      *
-     * @param name Name of the deck
-     * @return Deck created
+     * @param state Contents of the file
+     * @param notes The notes of the collection
+     * @param cards The cards of the collection
+     * @param decks The decks of the collection
+     * @param models The models of the collection
+     * @param clock The clock of the collection
      */
+    CollectionChanges(
+        final CollectionState state,
+        final Notes notes,
+        final Cards cards,
+        final Decks decks,
+        final Models models,
+        final Clock clock
+    ) {
+        this.state = state;
+        this.notes = notes;
+        this.cards = cards;
+        this.decks = decks;
+        this.models = models;
+        this.clock = clock;
+    }
+
+    @Override
     public Deck createDeck(final String name) {
-        final Deck deck = Deck.builder()
-            .id(new DeckId(this.decks.nextid()))
-            .name(name)
-            .modified(this.clock.now())
-            .usn(-1L)
-            .dynamic(false)
-            .build();
+        final Deck deck = new Deck(
+            new DeckId(this.decks.nextid()),
+            name,
+            this.clock.now(),
+            -1L,
+            false
+        );
         this.state.getDecklist().add(deck);
         return deck;
     }
 
-    /**
-     * Rename a deck.
-     *
-     * @param id Identifier of the deck
-     * @param name New name of the deck
-     */
+    @Override
     public void renameDeck(final DeckId id, final String name) {
         for (int index = 0; index < this.state.getDecklist().size(); index += 1) {
             final Deck deck = this.state.getDecklist().get(index);
@@ -112,11 +132,7 @@ final class CollectionChanges implements Editor {
         );
     }
 
-    /**
-     * Delete a deck; its cards move to the default deck.
-     *
-     * @param id Identifier of the deck
-     */
+    @Override
     public void deleteDeck(final DeckId id) {
         boolean found = false;
         for (int index = 0; index < this.state.getDecklist().size(); index += 1) {
@@ -144,12 +160,7 @@ final class CollectionChanges implements Editor {
         }
     }
 
-    /**
-     * Move the cards of a note to a deck.
-     *
-     * @param id Identifier of the note
-     * @param deck Identifier of the deck
-     */
+    @Override
     public void moveNote(final NoteId id, final DeckId deck) {
         boolean found = false;
         for (final Note note : this.state.getNotelist()) {
@@ -170,12 +181,7 @@ final class CollectionChanges implements Editor {
         }
     }
 
-    /**
-     * Move a card to a deck.
-     *
-     * @param id Identifier of the card
-     * @param deck Identifier of the deck
-     */
+    @Override
     public void moveCard(final CardId id, final DeckId deck) {
         for (int index = 0; index < this.state.getCardlist().size(); index += 1) {
             final Card card = this.state.getCardlist().get(index);
@@ -189,56 +195,42 @@ final class CollectionChanges implements Editor {
         );
     }
 
-    /**
-     * Add a note to the collection.
-     *
-     * @param type Identifier of the note type
-     * @param fields Field values of the note
-     * @return Note added
-     */
+    @Override
     public Note addNote(final NoteTypeId type, final List<String> fields) {
-        final Note note = Note.builder()
-            .id(new NoteId(this.notes.nextid()))
-            .guid(this.notes.guid())
-            .notetype(type)
-            .modified(this.clock.now())
-            .usn(-1L)
-            .tags(List.of())
-            .fields(fields)
-            .checksum(
-                new FieldValues(
-                    String.join(FieldValues.SEPARATOR, fields)
-                ).checksum()
-            )
-            .flags(0)
-            .data("")
-            .build();
+        final Note note = new Note(
+            new NoteId(this.notes.nextid()),
+            this.notes.guid(),
+            type,
+            this.clock.now(),
+            -1L,
+            List.of(),
+            fields,
+            new FieldValues(
+                String.join(FieldValues.SEPARATOR, fields)
+            ).checksum(),
+            0,
+            ""
+        );
         this.state.getNotelist().add(note);
         return note;
     }
 
-    /**
-     * Write the field values, the tags and the flags of a note.
-     *
-     * @param note Note with its new values
-     */
+    @Override
     public void updateNote(final Note note) {
-        final Note changed = Note.builder()
-            .id(note.getId())
-            .guid(note.getGuid())
-            .notetype(note.getNotetype())
-            .modified(this.clock.now())
-            .usn(note.getUsn())
-            .tags(note.getTags())
-            .fields(note.getFields())
-            .checksum(
-                new FieldValues(
-                    String.join(FieldValues.SEPARATOR, note.getFields())
-                ).checksum()
-            )
-            .flags(note.getFlags())
-            .data(note.getData())
-            .build();
+        final Note changed = new Note(
+            note.getId(),
+            note.getGuid(),
+            note.getNotetype(),
+            this.clock.now(),
+            note.getUsn(),
+            note.getTags(),
+            note.getFields(),
+            new FieldValues(
+                String.join(FieldValues.SEPARATOR, note.getFields())
+            ).checksum(),
+            note.getFlags(),
+            note.getData()
+        );
         for (int index = 0; index < this.state.getNotelist().size(); index += 1) {
             final long current = this.state.getNotelist()
                 .get(index).getId().getValue();
@@ -252,11 +244,7 @@ final class CollectionChanges implements Editor {
         );
     }
 
-    /**
-     * Delete a note with its cards.
-     *
-     * @param id Identifier of the note
-     */
+    @Override
     public void deleteNote(final NoteId id) {
         boolean found = false;
         for (int index = 0; index < this.state.getNotelist().size(); index += 1) {
@@ -283,36 +271,33 @@ final class CollectionChanges implements Editor {
 
     @Override
     public void generateCards(final NoteId id, final DeckId deck) {
-        final Note note = this.notes.find(id);
-        final NoteType type = this.models.find(note.getNotetype());
+        final NoteType type = this.models.find(this.notes.find(id).getNotetype());
         final long due = this.cards.position();
         for (final NoteTemplate template : type.getTemplates()) {
             final Card found = this.cards.find(id, template.getOrdinal());
             if (found == null) {
-                final Card card = Card.builder()
-                    .id(new CardId(this.cards.nextid()))
-                    .note(id)
-                    .deck(deck)
-                    .ordinal(template.getOrdinal())
-                    .modified(this.clock.now())
-                    .usn(-1L)
-                    .schedule(
-                        Schedule.builder()
-                            .type(0)
-                            .queue(0)
-                            .due(due)
-                            .interval(0L)
-                            .factor(0)
-                            .repetitions(0)
-                            .lapses(0)
-                            .left(0)
-                            .originaldue(0L)
-                            .originaldeck(0L)
-                            .build()
-                    )
-                    .flags(0)
-                    .data("")
-                    .build();
+                final Card card = new Card(
+                    new CardId(this.cards.nextid()),
+                    id,
+                    deck,
+                    template.getOrdinal(),
+                    this.clock.now(),
+                    -1L,
+                    new Schedule(
+                        0,
+                        0,
+                        due,
+                        0L,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0L,
+                        0L
+                    ),
+                    0,
+                    ""
+                );
                 this.state.getCardlist().add(card);
             }
         }

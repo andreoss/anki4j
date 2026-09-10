@@ -30,11 +30,6 @@ import java.util.Map;
 final class Models {
 
     /**
-     * Schema version from which the models are kept in tables.
-     */
-    private static final int TABLE_VERSION = 15;
-
-    /**
      * Name of the member the models keep.
      */
     private static final String NAME = "name";
@@ -93,7 +88,7 @@ final class Models {
      */
     List<NoteType> read(final int version) throws SQLException {
         final List<NoteType> found;
-        if (version >= Models.TABLE_VERSION) {
+        if (version >= 15) {
             found = this.readtables();
         } else {
             found = this.readdocument();
@@ -107,9 +102,11 @@ final class Models {
      * @param version Schema version of the collection
      */
     void write(final int version) {
-        try (PreparedStatement statement = this.connection.prepareStatement(
-            "update col set models = ?"
-        )) {
+        try (
+            PreparedStatement statement = this.connection.prepareStatement(
+                "update col set models = ?"
+            )
+        ) {
             statement.setString(1, this.text());
             statement.executeUpdate();
         } catch (final SQLException error) {
@@ -167,46 +164,37 @@ final class Models {
         return Models.TYPE.toJson(entries);
     }
 
-    /**
-     * Read the note types of a collection that keeps its models in tables.
-     *
-     * @return Note types, in identifier order
-     * @throws SQLException When the note types cannot be read
-     */
     private List<NoteType> readtables() throws SQLException {
         final List<NoteType> found = new ArrayList<>(0);
-        final String query = """
-            select id, name, mtime_secs, usn from notetypes order by id
-            """;
-        try (Statement statement = this.connection.createStatement();
-            ResultSet rows = statement.executeQuery(query)) {
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet rows = statement.executeQuery(
+                """
+                select id, name, mtime_secs, usn from notetypes order by id
+                """
+            )
+        ) {
             while (rows.next()) {
                 final NoteTypeId id = new NoteTypeId(rows.getLong("id"));
                 found.add(
-                    NoteType.builder()
-                        .id(id)
-                        .name(rows.getString("name"))
-                        .fields(this.tables.fields(id))
-                        .templates(this.tables.templates(id))
-                        .checks(List.of())
-                        .css("")
-                        .sortfield(0)
-                        .deck(new DeckId(1L))
-                        .modified(rows.getLong("mtime_secs"))
-                        .usn(rows.getLong("usn"))
-                        .build()
+                    new NoteType(
+                        id,
+                        rows.getString("name"),
+                        this.tables.fields(id),
+                        this.tables.templates(id),
+                        List.of(),
+                        "",
+                        0,
+                        new DeckId(1L),
+                        rows.getLong("mtime_secs"),
+                        rows.getLong("usn")
+                    )
                 );
             }
         }
         return found;
     }
 
-    /**
-     * Read the note types of a collection that keeps its models in a
-     * document.
-     *
-     * @return Note types, in the order of the document
-     */
     private List<NoteType> readdocument() {
         final List<NoteType> found = new ArrayList<>(0);
         for (final Entry entry : this.document.entries()) {
@@ -217,61 +205,48 @@ final class Models {
                 identifier = entry.number("id", 0L);
             }
             found.add(
-                NoteType.builder()
-                    .id(new NoteTypeId(identifier))
-                    .name(entry.text(Models.NAME))
-                    .fields(this.readfields(entry.name()))
-                    .templates(this.readtemplates(entry.name()))
-                    .checks(List.of())
-                    .css(entry.text("css"))
-                    .sortfield((int) entry.number("sortf", 0L))
-                    .deck(new DeckId(entry.number("did", 1L)))
-                    .modified(entry.number("mod", 0L))
-                    .usn(entry.number("usn", 0L))
-                    .build()
+                new NoteType(
+                    new NoteTypeId(identifier),
+                    entry.text(Models.NAME),
+                    this.readfields(entry.name()),
+                    this.readtemplates(entry.name()),
+                    List.of(),
+                    entry.text("css"),
+                    (int) entry.number("sortf", 0L),
+                    new DeckId(entry.number("did", 1L)),
+                    entry.number("mod", 0L),
+                    entry.number("usn", 0L)
+                )
             );
         }
         return found;
     }
 
-    /**
-     * Read the fields of a note type kept in a document.
-     *
-     * @param key Key of the entry in the document
-     * @return Fields of the note type
-     */
     private List<NoteField> readfields(final String key) {
         final List<NoteField> fields = new ArrayList<>(0);
         for (final Entry field : this.document.entry(key).items("flds")) {
             fields.add(
-                NoteField.builder()
-                    .name(field.text(Models.NAME))
-                    .ordinal((int) field.number("ord", 0L))
-                    .build()
+                new NoteField(
+                    field.text(Models.NAME),
+                    (int) field.number("ord", 0L)
+                )
             );
         }
         return fields;
     }
 
-    /**
-     * Read the card templates of a note type kept in a document.
-     *
-     * @param key Key of the entry in the document
-     * @return Card templates of the note type
-     */
     private List<NoteTemplate> readtemplates(final String key) {
         final List<NoteTemplate> templates = new ArrayList<>(0);
         for (final Entry template : this.document.entry(key).items("tmpls")) {
             templates.add(
-                NoteTemplate.builder()
-                    .name(template.text(Models.NAME))
-                    .ordinal((int) template.number("ord", 0L))
-                    .question(template.text("qfmt"))
-                    .answer(template.text("afmt"))
-                    .build()
+                new NoteTemplate(
+                    template.text(Models.NAME),
+                    (int) template.number("ord", 0L),
+                    template.text("qfmt"),
+                    template.text("afmt")
+                )
             );
         }
         return templates;
     }
-
 }

@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -89,10 +90,11 @@ public final class Archive {
             final ZipEntry entry = zip.getEntry(Archive.MAP);
             if (entry != null) {
                 try (InputStream stream = zip.getInputStream(entry)) {
-                    final String document = new String(
-                        stream.readAllBytes(), StandardCharsets.UTF_8
+                    final Object map = Archive.TYPE.fromJson(
+                        new String(
+                            stream.readAllBytes(), StandardCharsets.UTF_8
+                        )
                     );
-                    final Object map = Archive.TYPE.fromJson(document);
                     if (map instanceof Map) {
                         final Map<?, ?> entries = (Map<?, ?>) map;
                         for (final Map.Entry<?, ?> member : entries.entrySet()) {
@@ -118,7 +120,7 @@ public final class Archive {
         final Path directory = this.file.resolveSibling("media");
         Files.createDirectories(directory);
         try (ZipFile zip = new ZipFile(this.file.toFile())) {
-            final var entries = zip.entries();
+            final Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 final ZipEntry entry = entries.nextElement();
                 if (entry.isDirectory()

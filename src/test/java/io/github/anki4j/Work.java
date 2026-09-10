@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Work area for the tests, inside the build directory of the repository.
@@ -21,7 +22,12 @@ import java.util.List;
 public final class Work {
 
     /**
-     * Root of the work area.
+     * Root of the work area, for all the instances of this class.
+     */
+    private static final Path ROOT = Work.workRoot();
+
+    /**
+     * Root of the work area, taken from {@link #ROOT}.
      */
     private final Path root;
 
@@ -29,7 +35,7 @@ public final class Work {
      * New work area.
      */
     public Work() {
-        this.root = Work.workRoot();
+        this.root = Work.ROOT;
     }
 
     /**
@@ -48,18 +54,12 @@ public final class Work {
         return directory;
     }
 
-    /**
-     * Root of the work area.
-     *
-     * @return Directory holding the work areas
-     */
     private static Path workRoot() {
         try {
-            final Path classes = Path.of(
+            return Path.of(
                 Work.class.getProtectionDomain()
                     .getCodeSource().getLocation().toURI()
-            );
-            return classes.getParent().resolve("test-work");
+            ).getParent().resolve("test-work");
         } catch (final URISyntaxException error) {
             throw new IllegalStateException(
                 "cannot locate the build directory", error
@@ -67,15 +67,9 @@ public final class Work {
         }
     }
 
-    /**
-     * Delete a directory and its content.
-     *
-     * @param directory Directory to delete
-     * @throws IOException When the directory cannot be deleted
-     */
     private static void delete(final Path directory) throws IOException {
         final List<Path> paths = new ArrayList<>(0);
-        try (var walk = Files.walk(directory)) {
+        try (Stream<Path> walk = Files.walk(directory)) {
             walk.forEach(paths::add);
         }
         paths.sort(Comparator.reverseOrder());

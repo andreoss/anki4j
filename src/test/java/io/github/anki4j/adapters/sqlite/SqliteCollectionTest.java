@@ -31,43 +31,56 @@ final class SqliteCollectionTest {
      */
     @Test
     void readsLegacyLayout() throws Exception {
-        final Path path = Fixture.legacy(new Work().directory("legacy"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(11, collection.schemaVersion());
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                Fixture.legacy(new Work().directory("legacy"))
+            )
+        ) {
             final Deck firstdeck = collection.decks().get(0);
-            Assertions.assertEquals(1L, firstdeck.getId().getValue());
-            Assertions.assertEquals("Default", firstdeck.getName());
-            Assertions.assertEquals(3L, firstdeck.getModified());
-            Assertions.assertEquals(-1L, firstdeck.getUsn());
-            Assertions.assertFalse(firstdeck.isDynamic());
-            Assertions.assertEquals(
-                "Spanish", collection.decks().get(1).getName()
-            );
             final NoteType type = collection.noteTypes().get(0);
-            Assertions.assertEquals("Basic", type.getName());
-            Assertions.assertEquals(2, type.getFields().size());
-            Assertions.assertEquals("Front", type.getFields().get(0).getName());
-            Assertions.assertEquals("Back", type.getFields().get(1).getName());
-            Assertions.assertEquals(1, type.getTemplates().size());
-            Assertions.assertEquals(
-                "{{Front}}", type.getTemplates().get(0).getQuestion()
-            );
-            Assertions.assertEquals(
-                "{{FrontSide}}", type.getTemplates().get(0).getAnswer()
-            );
             final Note note = collection.notes().get(0);
-            Assertions.assertEquals("guid-1", note.getGuid());
-            Assertions.assertEquals(7L, note.getModified());
-            Assertions.assertEquals(
-                List.of("greeting", "spanish"), note.getTags()
-            );
-            Assertions.assertEquals(List.of("hola", "hello"), note.getFields());
-            Assertions.assertEquals(12_345L, note.getChecksum());
             final Card card = collection.cards().get(0);
-            Assertions.assertEquals(2L, card.getDeck().getValue());
-            Assertions.assertEquals(2500, card.getSchedule().getFactor());
-            Assertions.assertEquals(
-                1, card.getSchedule().getRepetitions()
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(11, collection.schemaVersion()),
+                () -> Assertions.assertEquals(1L, firstdeck.getId().getValue()),
+                () -> Assertions.assertEquals("Default", firstdeck.getName()),
+                () -> Assertions.assertEquals(3L, firstdeck.getModified()),
+                () -> Assertions.assertEquals(-1L, firstdeck.getUsn()),
+                () -> Assertions.assertFalse(firstdeck.isDynamic()),
+                () -> Assertions.assertEquals(
+                    "Spanish", collection.decks().get(1).getName()
+                ),
+                () -> Assertions.assertEquals("Basic", type.getName()),
+                () -> Assertions.assertEquals(2, type.getFields().size()),
+                () -> Assertions.assertEquals(
+                    "Front", type.getFields().get(0).getName()
+                ),
+                () -> Assertions.assertEquals(
+                    "Back", type.getFields().get(1).getName()
+                ),
+                () -> Assertions.assertEquals(1, type.getTemplates().size()),
+                () -> Assertions.assertEquals(
+                    "{{Front}}", type.getTemplates().get(0).getQuestion()
+                ),
+                () -> Assertions.assertEquals(
+                    "{{FrontSide}}", type.getTemplates().get(0).getAnswer()
+                ),
+                () -> Assertions.assertEquals("guid-1", note.getGuid()),
+                () -> Assertions.assertEquals(7L, note.getModified()),
+                () -> Assertions.assertEquals(
+                    List.of("greeting", "spanish"), note.getTags()
+                ),
+                () -> Assertions.assertEquals(
+                    List.of("hola", "hello"), note.getFields()
+                ),
+                () -> Assertions.assertEquals(12_345L, note.getChecksum()),
+                () -> Assertions.assertEquals(2L, card.getDeck().getValue()),
+                () -> Assertions.assertEquals(
+                    2500, card.getSchedule().getFactor()
+                ),
+                () -> Assertions.assertEquals(
+                    1, card.getSchedule().getRepetitions()
+                )
             );
         }
     }
@@ -79,22 +92,27 @@ final class SqliteCollectionTest {
      */
     @Test
     void readsTabularLayout() throws Exception {
-        final Path path = Fixture.tabular(new Work().directory("tabular"));
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(15, collection.schemaVersion());
-            Assertions.assertEquals(1, collection.decks().size());
-            Assertions.assertEquals(
-                "Default", collection.decks().get(0).getName()
-            );
-            Assertions.assertEquals(1, collection.noteTypes().size());
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                Fixture.tabular(new Work().directory("tabular"))
+            )
+        ) {
             final NoteType type = collection.noteTypes().get(0);
-            Assertions.assertEquals("Basic", type.getName());
-            Assertions.assertEquals(2, type.getFields().size());
-            Assertions.assertEquals(
-                "Card 1", type.getTemplates().get(0).getName()
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(15, collection.schemaVersion()),
+                () -> Assertions.assertEquals(1, collection.decks().size()),
+                () -> Assertions.assertEquals(
+                    "Default", collection.decks().get(0).getName()
+                ),
+                () -> Assertions.assertEquals(1, collection.noteTypes().size()),
+                () -> Assertions.assertEquals("Basic", type.getName()),
+                () -> Assertions.assertEquals(2, type.getFields().size()),
+                () -> Assertions.assertEquals(
+                    "Card 1", type.getTemplates().get(0).getName()
+                ),
+                () -> Assertions.assertEquals(1, collection.notes().size()),
+                () -> Assertions.assertEquals(1, collection.cards().size())
             );
-            Assertions.assertEquals(1, collection.notes().size());
-            Assertions.assertEquals(1, collection.cards().size());
         }
     }
 
@@ -105,13 +123,18 @@ final class SqliteCollectionTest {
      */
     @Test
     void createsEmptyCollection() throws Exception {
-        final Path path = new Work().directory("empty").resolve("new.anki2");
-        try (SqliteCollection collection = new SqliteCollection(path, true)) {
-            Assertions.assertEquals(11, collection.schemaVersion());
-            Assertions.assertTrue(collection.decks().isEmpty());
-            Assertions.assertTrue(collection.noteTypes().isEmpty());
-            Assertions.assertTrue(collection.notes().isEmpty());
-            Assertions.assertTrue(collection.cards().isEmpty());
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                new Work().directory("empty").resolve("new.anki2"), true
+            )
+        ) {
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(11, collection.schemaVersion()),
+                () -> Assertions.assertTrue(collection.decks().isEmpty()),
+                () -> Assertions.assertTrue(collection.noteTypes().isEmpty()),
+                () -> Assertions.assertTrue(collection.notes().isEmpty()),
+                () -> Assertions.assertTrue(collection.cards().isEmpty())
+            );
         }
     }
 
@@ -165,8 +188,10 @@ final class SqliteCollectionTest {
     @Test
     void reportsFileWithoutCollectionRow() throws Exception {
         final Path path = new Work().directory("plain").resolve("plain.anki2");
-        try (Connection connection = Fixture.connect(path);
-            Statement statement = connection.createStatement()) {
+        try (
+            Connection connection = Fixture.connect(path);
+            Statement statement = connection.createStatement()
+        ) {
             statement.executeUpdate("create table notes (id integer)");
         }
         Assertions.assertThrows(
@@ -185,8 +210,10 @@ final class SqliteCollectionTest {
         try (SqliteCollection created = new SqliteCollection(path, true)) {
             Assertions.assertEquals(11, created.schemaVersion());
         }
-        try (Connection connection = Fixture.connect(path);
-            Statement statement = connection.createStatement()) {
+        try (
+            Connection connection = Fixture.connect(path);
+            Statement statement = connection.createStatement()
+        ) {
             statement.executeUpdate("delete from col");
         }
         Assertions.assertThrows(
@@ -202,28 +229,38 @@ final class SqliteCollectionTest {
     @Test
     void readsCollectionRowWithoutModels() throws Exception {
         final Path path = new Work().directory("bare").resolve("bare.anki2");
-        try (SqliteCollection created = new SqliteCollection(path, true)) {
-            Assertions.assertEquals(11, created.schemaVersion());
-        }
-        try (Connection connection = Fixture.connect(path);
-            Statement statement = connection.createStatement()) {
-            statement.executeUpdate(
-                """
-                create table col_new (
-                    id integer, ver integer, models text, decks text
-                )
-                """
-            );
-            statement.executeUpdate(
-                "insert into col_new values (1, 11, null, null)"
-            );
-            statement.executeUpdate("drop table col");
-            statement.executeUpdate("alter table col_new rename to col");
-        }
-        try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(11, collection.schemaVersion());
-            Assertions.assertTrue(collection.decks().isEmpty());
-            Assertions.assertTrue(collection.noteTypes().isEmpty());
-        }
+        Assertions.assertAll(
+            () -> {
+                try (SqliteCollection created = new SqliteCollection(path, true)) {
+                    Assertions.assertEquals(11, created.schemaVersion());
+                }
+            },
+            () -> {
+                try (
+                    Connection connection = Fixture.connect(path);
+                    Statement statement = connection.createStatement()
+                ) {
+                    statement.executeUpdate(
+                        """
+                        create table col_new (
+                            id integer, ver integer, models text, decks text
+                        )
+                        """
+                    );
+                    statement.executeUpdate(
+                        "insert into col_new values (1, 11, null, null)"
+                    );
+                    statement.executeUpdate("drop table col");
+                    statement.executeUpdate("alter table col_new rename to col");
+                }
+            },
+            () -> {
+                try (SqliteCollection collection = new SqliteCollection(path)) {
+                    Assertions.assertEquals(11, collection.schemaVersion());
+                    Assertions.assertTrue(collection.decks().isEmpty());
+                    Assertions.assertTrue(collection.noteTypes().isEmpty());
+                }
+            }
+        );
     }
 }

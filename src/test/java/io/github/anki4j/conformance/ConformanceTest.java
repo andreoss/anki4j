@@ -7,6 +7,7 @@ package io.github.anki4j.conformance;
 
 import io.github.anki4j.Work;
 import java.nio.file.Path;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,11 +27,13 @@ final class ConformanceTest {
     @Test
     void keepsTheCases() throws Exception {
         final Path root = new Work().directory("conformance");
-        Cases.empty(root.resolve("empty"));
-        Cases.decks(root.resolve("decks"));
-        Cases.notes(root.resolve("notes"));
-        Cases.types(root.resolve("types"));
-        Cases.cards(root.resolve("cards"));
-        Cases.tables(root.resolve("tables"));
+        Assertions.assertAll(
+            () -> Cases.empty(root.resolve("empty")),
+            () -> Cases.decks(root.resolve("decks")),
+            () -> Cases.notes(root.resolve("notes")),
+            () -> Cases.types(root.resolve("types")),
+            () -> Cases.cards(root.resolve("cards")),
+            () -> Cases.tables(root.resolve("tables"))
+        );
     }
 }

@@ -45,20 +45,21 @@ final class TypeTables {
      */
     List<NoteField> fields(final NoteTypeId id) throws SQLException {
         final List<NoteField> fields = new ArrayList<>(0);
-        final String query = """
-            select ord, name from fields where ntid = ? order by ord
-            """;
-        try (PreparedStatement statement = this.connection.prepareStatement(
-            query
-        )) {
+        try (
+            PreparedStatement statement = this.connection.prepareStatement(
+                """
+                select ord, name from fields where ntid = ? order by ord
+                """
+            )
+        ) {
             statement.setLong(1, id.getValue());
             try (ResultSet rows = statement.executeQuery()) {
                 while (rows.next()) {
                     fields.add(
-                        NoteField.builder()
-                            .name(rows.getString("name"))
-                            .ordinal(rows.getInt("ord"))
-                            .build()
+                        new NoteField(
+                            rows.getString("name"),
+                            rows.getInt("ord")
+                        )
                     );
                 }
             }
@@ -75,20 +76,23 @@ final class TypeTables {
      */
     List<NoteTemplate> templates(final NoteTypeId id) throws SQLException {
         final List<NoteTemplate> templates = new ArrayList<>(0);
-        final String query = """
-            select ord, name from templates where ntid = ? order by ord
-            """;
-        try (PreparedStatement statement = this.connection.prepareStatement(
-            query
-        )) {
+        try (
+            PreparedStatement statement = this.connection.prepareStatement(
+                """
+                select ord, name from templates where ntid = ? order by ord
+                """
+            )
+        ) {
             statement.setLong(1, id.getValue());
             try (ResultSet rows = statement.executeQuery()) {
                 while (rows.next()) {
                     templates.add(
-                        NoteTemplate.builder()
-                            .name(rows.getString("name"))
-                            .ordinal(rows.getInt("ord"))
-                            .build()
+                        new NoteTemplate(
+                            rows.getString("name"),
+                            rows.getInt("ord"),
+                            "",
+                            ""
+                        )
                     );
                 }
             }

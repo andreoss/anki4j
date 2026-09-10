@@ -7,10 +7,13 @@ package io.github.anki4j.adapters.archive;
 
 import io.github.anki4j.Work;
 import io.github.anki4j.adapters.sqlite.SqliteCollection;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,24 +35,36 @@ final class ArchiveTest {
         final Path path = directory.resolve("deck.apkg");
         final Path media = directory.resolve("image.txt");
         Files.writeString(media, "the media");
-        try (SqliteCollection collection = new SqliteCollection(
-            directory.resolve("collection.anki2"), true
-        )) {
+        try (
+            SqliteCollection collection = new SqliteCollection(
+                directory.resolve("collection.anki2"),
+                true
+            )
+        ) {
             collection.editor().createDeck("French");
             collection.exportArchive(path, ArchiveTest.media(media));
         }
         final Archive archive = new Archive(path);
-        Assertions.assertEquals("image.txt", archive.media().get("0"));
-        try (SqliteCollection collection = new SqliteCollection(
-            archive.collection()
-        )) {
-            Assertions.assertEquals(1, collection.decks().size());
-            Assertions.assertEquals("French", collection.decks().get(0).getName());
-        }
-        final Path mediadir = archive.mediaDirectory();
-        Assertions.assertEquals(
-            "the media",
-            Files.readString(mediadir.resolve("0"))
+        Assertions.assertAll(
+            () -> Assertions.assertEquals(
+                "image.txt", archive.media().get("0")
+            ),
+            () -> {
+                try (
+                    SqliteCollection collection = new SqliteCollection(
+                        archive.collection()
+                    )
+                ) {
+                    Assertions.assertEquals(1, collection.decks().size());
+                    Assertions.assertEquals(
+                        "French", collection.decks().get(0).getName()
+                    );
+                }
+            },
+            () -> Assertions.assertEquals(
+                "the media",
+                Files.readString(archive.mediaDirectory().resolve("0"))
+            )
         );
     }
 
@@ -62,25 +77,20 @@ final class ArchiveTest {
     void reportsAnArchiveWithoutACollection() throws Exception {
         final Path directory = new Work().directory("emptyarchive");
         final Path path = directory.resolve("empty.apkg");
-        try (java.util.zip.ZipOutputStream zip = new java.util.zip.ZipOutputStream(
-            Files.newOutputStream(path)
-        )) {
-            zip.putNextEntry(new java.util.zip.ZipEntry("media"));
+        try (
+            ZipOutputStream zip = new ZipOutputStream(
+                Files.newOutputStream(path)
+            )
+        ) {
+            zip.putNextEntry(new ZipEntry("media"));
             zip.closeEntry();
             zip.finish();
         }
-        final Archive archive = new Archive(path);
         Assertions.assertThrows(
-            java.io.IOException.class, archive::collection
+            IOException.class, new Archive(path)::collection
         );
     }
 
-    /**
-     * The media of a collection, by name.
-     *
-     * @param media Path of the media file
-     * @return Media of the collection
-     */
     private static Map<String, Path> media(final Path media) {
         final Map<String, Path> files = new LinkedHashMap<>();
         files.put("image.txt", media);

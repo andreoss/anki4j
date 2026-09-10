@@ -98,18 +98,12 @@ final class Cases {
                 new NoteTypeId(1L), List.of("hola", "hello")
             );
             collection.editor().updateNote(
-                Note.builder()
-                    .id(note.getId())
-                    .guid(note.getGuid())
-                    .notetype(note.getNotetype())
-                    .modified(note.getModified())
-                    .usn(note.getUsn())
-                    .tags(List.of("greeting", "spanish"))
-                    .fields(note.getFields())
-                    .checksum(note.getChecksum())
-                    .flags(3)
-                    .data(note.getData())
-                    .build()
+                new Note(
+                    note.getId(), note.getGuid(), note.getNotetype(),
+                    note.getModified(), note.getUsn(),
+                    List.of("greeting", "spanish"), note.getFields(),
+                    note.getChecksum(), 3, note.getData()
+                )
             );
             collection.save(path);
         }
@@ -156,24 +150,15 @@ final class Cases {
         final Path path = directory.resolve(Cases.FILE);
         try (SqliteCollection collection = new SqliteCollection(path, true)) {
             collection.types().addNoteType(Fixtures.basic());
-            final Note note = collection.editor().addNote(
-                new NoteTypeId(1L), List.of("hola", "hello")
+            collection.editor().generateCards(
+                collection.editor().addNote(
+                    new NoteTypeId(1L), List.of("hola", "hello")
+                ).getId(),
+                new DeckId(1L)
             );
-            collection.editor().generateCards(note.getId(), new DeckId(1L));
             collection.editor().setSchedule(
                 collection.cards().get(0).getId(),
-                Schedule.builder()
-                    .type(2)
-                    .queue(2)
-                    .due(100L)
-                    .interval(10L)
-                    .factor(2500)
-                    .repetitions(3)
-                    .lapses(1)
-                    .left(0)
-                    .originaldue(90L)
-                    .originaldeck(1L)
-                    .build()
+                new Schedule(2, 2, 100L, 10L, 2500, 3, 1, 0, 90L, 1L)
             );
             collection.save(path);
         }
@@ -197,9 +182,11 @@ final class Cases {
         final Path path = directory.resolve(Cases.FILE);
         final SQLiteDataSource source = new SQLiteDataSource();
         source.setUrl(String.format("jdbc:sqlite:%s", path));
-        try (Connection connection = source.getConnection();
-            Statement statement = connection.createStatement()) {
-            for (final String command : Fixtures.tableSchema().split(";")) {
+        try (
+            Connection connection = source.getConnection();
+            Statement statement = connection.createStatement()
+        ) {
+            for (final String command : Fixtures.tableSchema().split(";", -1)) {
                 if (!command.isBlank()) {
                     statement.execute(command);
                 }
@@ -220,12 +207,6 @@ final class Cases {
         Cases.keeps(directory);
     }
 
-    /**
-     * The contents of a case survive a save and an export.
-     *
-     * @param directory Directory of the case
-     * @throws Exception When the collection cannot be saved or exported
-     */
     private static void keeps(final Path directory) throws Exception {
         final Path source = directory.resolve(Cases.FILE);
         final String report = Report.text(source);

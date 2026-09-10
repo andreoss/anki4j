@@ -25,14 +25,6 @@ import java.util.Random;
 final class Notes {
 
     /**
-     * Characters of the identifiers of the notes.
-     */
-    private static final String ALPHABET = """
-        abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\
-        0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~\
-        """;
-
-    /**
      * Connection to the database file.
      */
     private final Connection connection;
@@ -67,27 +59,30 @@ final class Notes {
      */
     List<Note> read() throws SQLException {
         final List<Note> found = new ArrayList<>(0);
-        final String query = """
-            select id, guid, mid, mod, usn, tags, flds, csum, flags, data
-            from notes
-            order by id
-            """;
-        try (Statement statement = this.connection.createStatement();
-            ResultSet rows = statement.executeQuery(query)) {
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet rows = statement.executeQuery(
+                """
+                select id, guid, mid, mod, usn, tags, flds, csum, flags, data
+                from notes
+                order by id
+                """
+            )
+        ) {
             while (rows.next()) {
                 found.add(
-                    Note.builder()
-                        .id(new NoteId(rows.getLong("id")))
-                        .guid(rows.getString("guid"))
-                        .notetype(new NoteTypeId(rows.getLong("mid")))
-                        .modified(rows.getLong("mod"))
-                        .usn(rows.getLong("usn"))
-                        .tags(new Tags(rows.getString("tags")).values())
-                        .fields(new FieldValues(rows.getString("flds")).values())
-                        .checksum(rows.getLong("csum"))
-                        .flags(rows.getInt("flags"))
-                        .data(rows.getString("data"))
-                        .build()
+                    new Note(
+                        new NoteId(rows.getLong("id")),
+                        rows.getString("guid"),
+                        new NoteTypeId(rows.getLong("mid")),
+                        rows.getLong("mod"),
+                        rows.getLong("usn"),
+                        new Tags(rows.getString("tags")).values(),
+                        new FieldValues(rows.getString("flds")).values(),
+                        rows.getLong("csum"),
+                        rows.getInt("flags"),
+                        rows.getString("data")
+                    )
                 );
             }
         }
@@ -103,20 +98,21 @@ final class Notes {
         final String fields = String.join(
             FieldValues.SEPARATOR, note.getFields()
         );
-        final String tags = String.join(Tags.SEPARATOR, note.getTags());
-        try (PreparedStatement statement = this.connection.prepareStatement(
-            """
-            insert into notes (
-                id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-        )) {
+        try (
+            PreparedStatement statement = this.connection.prepareStatement(
+                """
+                insert into notes (
+                    id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+            )
+        ) {
             statement.setLong(1, note.getId().getValue());
             statement.setString(2, note.getGuid());
             statement.setLong(3, note.getNotetype().getValue());
             statement.setLong(4, note.getModified());
             statement.setLong(5, note.getUsn());
-            statement.setString(6, tags);
+            statement.setString(6, String.join(Tags.SEPARATOR, note.getTags()));
             statement.setString(7, fields);
             statement.setString(8, new FieldValues(fields).sortfield());
             statement.setLong(9, note.getChecksum());
@@ -152,7 +148,12 @@ final class Notes {
         long value = (this.random.nextLong() & Long.MAX_VALUE) | 1L;
         final StringBuilder builder = new StringBuilder();
         while (value > 0L) {
-            builder.append(Notes.ALPHABET.charAt((int) (value % 91L)));
+            builder.append(
+                """
+                abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                0123456789!#$%&()*+,-./:;<=>?@[]^_`{|}~\
+                """.charAt((int) (value % 91L))
+            );
             value /= 91L;
         }
         return builder.reverse().toString();

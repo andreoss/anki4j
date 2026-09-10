@@ -5,18 +5,33 @@
  */
 package io.github.anki4j.domain;
 
-import lombok.Value;
-
 /**
  * Identifier of a Note.
  *
  * @since 0.1.0
  */
-@Value
 public final class NoteId {
 
     /**
      * Raw identifier.
      */
-    private long value;
+    private final long value;
+
+    /**
+     * All fields of the identifier.
+     *
+     * @param value Raw identifier
+     */
+    public NoteId(final long value) {
+        this.value = value;
+    }
+
+    /**
+     * Raw identifier.
+     *
+     * @return Raw identifier
+     */
+    public long getValue() {
+        return this.value;
+    }
 }

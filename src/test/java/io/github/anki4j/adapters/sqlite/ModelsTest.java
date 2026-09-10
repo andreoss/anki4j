@@ -30,13 +30,19 @@ final class ModelsTest {
             final List<NoteType> types = new Models(
                 connection, new ArrayList<>(0), new Document(Fixture.MODELS)
             ).read(11);
-            Assertions.assertEquals(1, types.size());
-            Assertions.assertEquals("Basic", types.get(0).getName());
-            Assertions.assertEquals(
-                Fixture.NOTE_TYPE_ID, types.get(0).getId().getValue()
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(1, types.size()),
+                () -> Assertions.assertEquals("Basic", types.get(0).getName()),
+                () -> Assertions.assertEquals(
+                    Fixture.NOTE_TYPE_ID, types.get(0).getId().getValue()
+                ),
+                () -> Assertions.assertEquals(
+                    2, types.get(0).getFields().size()
+                ),
+                () -> Assertions.assertEquals(
+                    1, types.get(0).getTemplates().size()
+                )
             );
-            Assertions.assertEquals(2, types.get(0).getFields().size());
-            Assertions.assertEquals(1, types.get(0).getTemplates().size());
         }
     }
 
@@ -46,15 +52,17 @@ final class ModelsTest {
     @Test
     void readsEmptyInput() throws SQLException {
         try (Connection connection = ModelsTest.connect()) {
-            Assertions.assertTrue(
-                new Models(
-                    connection, new ArrayList<>(0), new Document((String) null)
-                ).read(11).isEmpty()
-            );
-            Assertions.assertTrue(
-                new Models(
-                    connection, new ArrayList<>(0), new Document("")
-                ).read(11).isEmpty()
+            Assertions.assertAll(
+                () -> Assertions.assertTrue(
+                    new Models(
+                        connection, new ArrayList<>(0), new Document((String) null)
+                    ).read(11).isEmpty()
+                ),
+                () -> Assertions.assertTrue(
+                    new Models(
+                        connection, new ArrayList<>(0), new Document("")
+                    ).read(11).isEmpty()
+                )
             );
         }
     }
@@ -65,10 +73,11 @@ final class ModelsTest {
     @Test
     void readsNonObjectInput() throws SQLException {
         try (Connection connection = ModelsTest.connect()) {
-            final List<NoteType> types = new Models(
-                connection, new ArrayList<>(0), new Document("[]")
-            ).read(11);
-            Assertions.assertTrue(types.isEmpty());
+            Assertions.assertTrue(
+                new Models(
+                    connection, new ArrayList<>(0), new Document("[]")
+                ).read(11).isEmpty()
+            );
         }
     }
 
@@ -81,9 +90,15 @@ final class ModelsTest {
             final List<NoteType> types = new Models(
                 connection, new ArrayList<>(0), new Document("{\"1\": {}}")
             ).read(11);
-            Assertions.assertEquals("", types.get(0).getName());
-            Assertions.assertTrue(types.get(0).getFields().isEmpty());
-            Assertions.assertTrue(types.get(0).getTemplates().isEmpty());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals("", types.get(0).getName()),
+                () -> Assertions.assertTrue(
+                    types.get(0).getFields().isEmpty()
+                ),
+                () -> Assertions.assertTrue(
+                    types.get(0).getTemplates().isEmpty()
+                )
+            );
         }
     }
 
@@ -109,11 +124,13 @@ final class ModelsTest {
                     """
                 )
             ).read(11);
-            Assertions.assertEquals(1, types.size());
-            Assertions.assertEquals(
-                1_581_236_385_343L, types.get(0).getId().getValue()
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(1, types.size()),
+                () -> Assertions.assertEquals(
+                    1_581_236_385_343L, types.get(0).getId().getValue()
+                ),
+                () -> Assertions.assertEquals("Cloze", types.get(0).getName())
             );
-            Assertions.assertEquals("Cloze", types.get(0).getName());
         }
     }
 
@@ -135,12 +152,14 @@ final class ModelsTest {
                     """
                 )
             ).read(11);
-            Assertions.assertEquals(2, types.size());
-            Assertions.assertEquals(
-                1_581_236_385_343L, types.get(0).getId().getValue()
-            );
-            Assertions.assertEquals(
-                1_581_236_385_344L, types.get(1).getId().getValue()
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(2, types.size()),
+                () -> Assertions.assertEquals(
+                    1_581_236_385_343L, types.get(0).getId().getValue()
+                ),
+                () -> Assertions.assertEquals(
+                    1_581_236_385_344L, types.get(1).getId().getValue()
+                )
             );
         }
     }
@@ -162,9 +181,11 @@ final class ModelsTest {
                     """
                 )
             ).read(11);
-            Assertions.assertEquals(1, types.size());
-            Assertions.assertEquals(
-                1_581_236_385_343L, types.get(0).getId().getValue()
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(1, types.size()),
+                () -> Assertions.assertEquals(
+                    1_581_236_385_343L, types.get(0).getId().getValue()
+                )
             );
         }
     }
@@ -191,9 +212,13 @@ final class ModelsTest {
                     """
                 )
             ).read(11);
-            Assertions.assertEquals(1, types.size());
-            Assertions.assertEquals(1_581_236_385L, types.get(0).getModified());
-            Assertions.assertEquals(-1L, types.get(0).getUsn());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(1, types.size()),
+                () -> Assertions.assertEquals(
+                    1_581_236_385L, types.get(0).getModified()
+                ),
+                () -> Assertions.assertEquals(-1L, types.get(0).getUsn())
+            );
         }
     }
 
@@ -216,17 +241,15 @@ final class ModelsTest {
                     """
                 )
             ).read(11);
-            Assertions.assertEquals(1, types.size());
-            Assertions.assertEquals(0L, types.get(0).getModified());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(1, types.size()),
+                () -> Assertions.assertEquals(
+                    0L, types.get(0).getModified()
+                )
+            );
         }
     }
 
-    /**
-     * Connect to an empty database.
-     *
-     * @return Connection to the database
-     * @throws SQLException When the connection cannot be opened
-     */
     private static Connection connect() throws SQLException {
         return DriverManager.getConnection("jdbc:sqlite::memory:");
     }

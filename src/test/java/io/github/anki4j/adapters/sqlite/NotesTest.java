@@ -23,7 +23,7 @@ final class NotesTest {
     void splitsFields() {
         Assertions.assertEquals(
             List.of("bonjour", "hello"),
-            new FieldValues("bonjour\u001Fhello").values()
+            new FieldValues("bonjourhello").values()
         );
     }
 
@@ -34,7 +34,7 @@ final class NotesTest {
     void keepsEmptyFieldValues() {
         Assertions.assertEquals(
             List.of("bonjour", "", "hello"),
-            new FieldValues("bonjour\u001F\u001Fhello").values()
+            new FieldValues("bonjourhello").values()
         );
     }
 
@@ -43,10 +43,12 @@ final class NotesTest {
      */
     @Test
     void readsEmptyFields() {
-        Assertions.assertTrue(
-            new FieldValues((String) null).values().isEmpty()
+        Assertions.assertAll(
+            () -> Assertions.assertTrue(
+                new FieldValues((String) null).values().isEmpty()
+            ),
+            () -> Assertions.assertTrue(new FieldValues("").values().isEmpty())
         );
-        Assertions.assertTrue(new FieldValues("").values().isEmpty());
     }
 
     /**
@@ -65,8 +67,12 @@ final class NotesTest {
      */
     @Test
     void readsEmptyTags() {
-        Assertions.assertTrue(new Tags((String) null).values().isEmpty());
-        Assertions.assertTrue(new Tags("   ").values().isEmpty());
+        Assertions.assertAll(
+            () -> Assertions.assertTrue(
+                new Tags((String) null).values().isEmpty()
+            ),
+            () -> Assertions.assertTrue(new Tags("   ").values().isEmpty())
+        );
     }
 
     /**
@@ -75,7 +81,7 @@ final class NotesTest {
     @Test
     void joinsFields() {
         Assertions.assertEquals(
-            "bonjour\u001Fhello",
+            "bonjourhello",
             String.join(
                 FieldValues.SEPARATOR, List.of("bonjour", "hello")
             )
@@ -87,11 +93,13 @@ final class NotesTest {
      */
     @Test
     void readsSortField() {
-        Assertions.assertEquals(
-            "bonjour",
-            new FieldValues("bonjour\u001Fhello").sortfield()
+        Assertions.assertAll(
+            () -> Assertions.assertEquals(
+                "bonjour",
+                new FieldValues("bonjourhello").sortfield()
+            ),
+            () -> Assertions.assertEquals("", new FieldValues("").sortfield())
         );
-        Assertions.assertEquals("", new FieldValues("").sortfield());
     }
 
     /**
@@ -100,8 +108,8 @@ final class NotesTest {
     @Test
     void readsChecksum() {
         Assertions.assertEquals(
-            new FieldValues("bonjour\u001Fhello").checksum(),
-            new FieldValues("bonjour\u001Fbye").checksum()
+            new FieldValues("bonjourhello").checksum(),
+            new FieldValues("bonjourbye").checksum()
         );
     }
 }

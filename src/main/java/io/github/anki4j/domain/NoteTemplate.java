@@ -5,35 +5,56 @@
  */
 package io.github.anki4j.domain;
 
-import lombok.Builder;
-import lombok.Value;
-
 /**
  * A card template of a note type.
  *
+ * @param name Name of the template
+ * @param ordinal Ordinal of the template inside its note type
+ * @param question Question text of the template
+ * @param answer Answer text of the template
  * @since 0.1.0
  */
-@Value
-@Builder
-public final class NoteTemplate {
+@SuppressWarnings("PMD.DataClass")
+public record NoteTemplate(
+    String name,
+    int ordinal,
+    String question,
+    String answer
+) {
 
     /**
-     * Name of the card template.
+     * Name of the template.
+     *
+     * @return Name of the template
      */
-    private String name;
+    public String getName() {
+        return this.name;
+    }
 
     /**
-     * Ordinal of the card template inside its note type.
+     * Ordinal of the template inside its note type.
+     *
+     * @return Ordinal of the template
      */
-    private int ordinal;
+    public int getOrdinal() {
+        return this.ordinal;
+    }
 
     /**
-     * Question format of the card.
+     * Question text of the template.
+     *
+     * @return Question text
      */
-    private String question;
+    public String getQuestion() {
+        return this.question;
+    }
 
     /**
-     * Answer format of the card.
+     * Answer text of the template.
+     *
+     * @return Answer text
      */
-    private String answer;
+    public String getAnswer() {
+        return this.answer;
+    }
 }

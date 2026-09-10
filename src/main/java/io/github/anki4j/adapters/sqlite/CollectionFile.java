@@ -23,82 +23,7 @@ final class CollectionFile {
     /**
      * Tables and indexes of an empty collection.
      */
-    private static final String SCHEMA = """
-        create table col (
-            id integer primary key,
-            crt integer not null,
-            mod integer not null,
-            scm integer not null,
-            ver integer not null,
-            dty integer not null,
-            usn integer not null,
-            ls integer not null,
-            conf text not null,
-            models text not null,
-            decks text not null,
-            dconf text not null,
-            tags text not null
-        );
-        create table notes (
-            id integer primary key,
-            guid text not null,
-            mid integer not null,
-            mod integer not null,
-            usn integer not null,
-            tags text not null,
-            flds text not null,
-            sfld integer not null,
-            csum integer not null,
-            flags integer not null,
-            data text not null
-        );
-        create table cards (
-            id integer primary key,
-            nid integer not null,
-            did integer not null,
-            ord integer not null,
-            mod integer not null,
-            usn integer not null,
-            type integer not null,
-            queue integer not null,
-            due integer not null,
-            ivl integer not null,
-            factor integer not null,
-            reps integer not null,
-            lapses integer not null,
-            left integer not null,
-            odue integer not null,
-            odid integer not null,
-            flags integer not null,
-            data text not null
-        );
-        create table revlog (
-            id integer primary key,
-            cid integer not null,
-            usn integer not null,
-            ease integer not null,
-            ivl integer not null,
-            lastIvl integer not null,
-            factor integer not null,
-            time integer not null,
-            type integer not null
-        );
-        create table graves (
-            usn integer not null,
-            oid integer not null,
-            type integer not null
-        );
-        create index ix_notes_usn on notes (usn);
-        create index ix_cards_usn on cards (usn);
-        create index ix_revlog_usn on revlog (usn);
-        create index ix_cards_nid on cards (nid);
-        create index ix_cards_sched on cards (did, queue, due);
-        create index ix_revlog_cid on revlog (cid);
-        create index ix_notes_csum on notes (csum);
-        insert into col values (
-            1, 0, 0, 0, 11, 0, 0, 0, '{}', '{}', '{}', '{}', '{}'
-        );
-        """;
+    private final String schema;
 
     /**
      * Path of the file of the collection.
@@ -111,20 +36,90 @@ final class CollectionFile {
     private final boolean empty;
 
     /**
-     * Tables and indexes of an empty collection.
-     */
-    private final String schema;
-
-    /**
      * New file of a collection.
      *
      * @param path Path of the database file
      * @param empty Whether the file is created with an empty collection
      */
     CollectionFile(final Path path, final boolean empty) {
+        this.schema = """
+            create table col (
+                id integer primary key,
+                crt integer not null,
+                mod integer not null,
+                scm integer not null,
+                ver integer not null,
+                dty integer not null,
+                usn integer not null,
+                ls integer not null,
+                conf text not null,
+                models text not null,
+                decks text not null,
+                dconf text not null,
+                tags text not null
+            );
+            create table notes (
+                id integer primary key,
+                guid text not null,
+                mid integer not null,
+                mod integer not null,
+                usn integer not null,
+                tags text not null,
+                flds text not null,
+                sfld integer not null,
+                csum integer not null,
+                flags integer not null,
+                data text not null
+            );
+            create table cards (
+                id integer primary key,
+                nid integer not null,
+                did integer not null,
+                ord integer not null,
+                mod integer not null,
+                usn integer not null,
+                type integer not null,
+                queue integer not null,
+                due integer not null,
+                ivl integer not null,
+                factor integer not null,
+                reps integer not null,
+                lapses integer not null,
+                left integer not null,
+                odue integer not null,
+                odid integer not null,
+                flags integer not null,
+                data text not null
+            );
+            create table revlog (
+                id integer primary key,
+                cid integer not null,
+                usn integer not null,
+                ease integer not null,
+                ivl integer not null,
+                lastIvl integer not null,
+                factor integer not null,
+                time integer not null,
+                type integer not null
+            );
+            create table graves (
+                usn integer not null,
+                oid integer not null,
+                type integer not null
+            );
+            create index ix_notes_usn on notes (usn);
+            create index ix_cards_usn on cards (usn);
+            create index ix_revlog_usn on revlog (usn);
+            create index ix_cards_nid on cards (nid);
+            create index ix_cards_sched on cards (did, queue, due);
+            create index ix_revlog_cid on revlog (cid);
+            create index ix_notes_csum on notes (csum);
+            insert into col values (
+                1, 0, 0, 0, 11, 0, 0, 0, '{}', '{}', '{}', '{}', '{}'
+            );
+            """;
         this.path = path;
         this.empty = empty;
-        this.schema = CollectionFile.SCHEMA;
     }
 
     /**
@@ -140,10 +135,13 @@ final class CollectionFile {
         if (this.empty) {
             this.createschema(connection);
         }
-        final String query = "select ver, models, decks from col";
         final Header header;
-        try (Statement statement = connection.createStatement();
-            ResultSet rows = statement.executeQuery(query)) {
+        try (
+            Statement statement = connection.createStatement();
+            ResultSet rows = statement.executeQuery(
+                "select ver, models, decks from col"
+            )
+        ) {
             if (rows.next()) {
                 header = new Header(
                     rows.getInt("ver"),
@@ -174,16 +172,9 @@ final class CollectionFile {
         );
     }
 
-    /**
-     * Create the tables of an empty collection.
-     *
-     * @param connection Connection to the database file
-     * @throws SQLException When the tables cannot be created
-     */
-    private void createschema(final Connection connection)
-        throws SQLException {
+    private void createschema(final Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            for (final String command : this.schema.split(";")) {
+            for (final String command : this.schema.split(";", -1)) {
                 if (!command.isBlank()) {
                     statement.execute(command);
                 }

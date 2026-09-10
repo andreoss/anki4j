@@ -24,16 +24,6 @@ import org.sqlite.SQLiteDataSource;
 final class CollectionCopy {
 
     /**
-     * Schema version from which the models are kept in tables.
-     */
-    private static final int TABLE_VERSION = 15;
-
-    /**
-     * Suffix of the file the collection is written to first.
-     */
-    private static final String SUFFIX = ".tmp";
-
-    /**
      * Contents of the collection.
      */
     private final CollectionState state;
@@ -76,24 +66,12 @@ final class CollectionCopy {
         }
     }
 
-    /**
-     * Path of the file the collection is written to first.
-     *
-     * @return Path of the file
-     */
     private Path temporary() {
         return this.target.resolveSibling(
-            this.target.getFileName() + CollectionCopy.SUFFIX
+            String.format("%s.tmp", this.target.getFileName())
         );
     }
 
-    /**
-     * Make the file the collection is written to first, with the tables of
-     * the file it was read from.
-     *
-     * @param temp Path of the file
-     * @throws IOException When the file cannot be copied
-     */
     private void prepare(final Path temp) throws IOException {
         Files.deleteIfExists(temp);
         if (Files.exists(this.target)) {
@@ -107,12 +85,6 @@ final class CollectionCopy {
         }
     }
 
-    /**
-     * Fill the file with the contents of the collection.
-     *
-     * @param temp Path of the file
-     * @throws SQLException When the file cannot be filled
-     */
     private void fill(final Path temp) throws SQLException {
         final SQLiteDataSource source = new SQLiteDataSource();
         source.setUrl(String.format("jdbc:sqlite:%s", temp));
@@ -126,7 +98,7 @@ final class CollectionCopy {
                 this.state.getDecklist(),
                 this.state.getHeader().decks()
             ).write(this.state.getVersion());
-            if (this.state.getVersion() < CollectionCopy.TABLE_VERSION) {
+            if (this.state.getVersion() < 15) {
                 new Models(
                     connection,
                     this.state.getNotetypelist(),

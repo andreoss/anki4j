@@ -11,7 +11,9 @@ import io.github.anki4j.domain.Deck;
 import io.github.anki4j.domain.DeckId;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -125,9 +127,11 @@ final class Decks {
             if (version >= Decks.TABLE_VERSION) {
                 this.writetables();
             } else {
-                try (PreparedStatement statement = this.connection.prepareStatement(
-                    "update col set decks = ?"
-                )) {
+                try (
+                    PreparedStatement statement = this.connection.prepareStatement(
+                        "update col set decks = ?"
+                    )
+                ) {
                     statement.setString(1, this.text());
                     statement.executeUpdate();
                 }
@@ -162,70 +166,58 @@ final class Decks {
         return Decks.TYPE.toJson(entries);
     }
 
-    /**
-     * Read the decks of a collection that keeps its models in tables.
-     *
-     * @return Decks, in identifier order
-     * @throws SQLException When the decks cannot be read
-     */
     private List<Deck> readtables() throws SQLException {
         final List<Deck> found = new ArrayList<>(0);
-        try (var statement = this.connection.createStatement();
-            var rows = statement.executeQuery(
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet rows = statement.executeQuery(
                 "select id, name, mtime_secs, usn from decks order by id"
-            )) {
+            )
+        ) {
             while (rows.next()) {
                 found.add(
-                    Deck.builder()
-                        .id(new DeckId(rows.getLong("id")))
-                        .name(rows.getString("name"))
-                        .modified(rows.getLong("mtime_secs"))
-                        .usn(rows.getLong("usn"))
-                        .dynamic(false)
-                        .build()
+                    new Deck(
+                        new DeckId(rows.getLong("id")),
+                        rows.getString("name"),
+                        rows.getLong("mtime_secs"),
+                        rows.getLong("usn"),
+                        false
+                    )
                 );
             }
         }
         return found;
     }
 
-    /**
-     * Read the decks of a collection that keeps its models as documents.
-     *
-     * @return Decks, in the order of the document
-     */
     private List<Deck> readdocument() {
         final List<Deck> found = new ArrayList<>(0);
         for (final Entry entry : this.document.entries()) {
             found.add(
-                Deck.builder()
-                    .id(new DeckId(entry.number("id", 0L)))
-                    .name(entry.text("name"))
-                    .modified(entry.number("mod", 0L))
-                    .usn(entry.number("usn", 0L))
-                    .dynamic(entry.number("dyn", 0L) != 0L)
-                    .build()
+                new Deck(
+                    new DeckId(entry.number("id", 0L)),
+                    entry.text("name"),
+                    entry.number("mod", 0L),
+                    entry.number("usn", 0L),
+                    entry.number("dyn", 0L) != 0L
+                )
             );
         }
         return found;
     }
 
-    /**
-     * Write the decks of a collection that keeps its models in tables.
-     *
-     * @throws SQLException When the decks cannot be written
-     */
     private void writetables() throws SQLException {
-        try (PreparedStatement statement = this.connection.prepareStatement(
-            """
-            insert into decks (id, name, mtime_secs, usn, common, kind)
-            values (?, ?, ?, ?, x'00', x'00')
-            on conflict(id) do update set
-                name = excluded.name,
-                mtime_secs = excluded.mtime_secs,
-                usn = excluded.usn
-            """
-        )) {
+        try (
+            PreparedStatement statement = this.connection.prepareStatement(
+                """
+                insert into decks (id, name, mtime_secs, usn, common, kind)
+                values (?, ?, ?, ?, x'00', x'00')
+                on conflict(id) do update set
+                    name = excluded.name,
+                    mtime_secs = excluded.mtime_secs,
+                    usn = excluded.usn
+                """
+            )
+        ) {
             for (final Deck deck : this.decklist) {
                 statement.setLong(1, deck.getId().getValue());
                 statement.setString(2, deck.getName());
@@ -235,27 +227,25 @@ final class Decks {
             }
         }
         for (final Deck deck : this.removed()) {
-            try (PreparedStatement statement = this.connection.prepareStatement(
-                "delete from decks where id = ?"
-            )) {
+            try (
+                PreparedStatement statement = this.connection.prepareStatement(
+                    "delete from decks where id = ?"
+                )
+            ) {
                 statement.setLong(1, deck.getId().getValue());
                 statement.executeUpdate();
             }
         }
     }
 
-    /**
-     * Decks of a collection that are not wanted any more.
-     *
-     * @return Decks to remove
-     * @throws SQLException When the decks cannot be read
-     */
     private List<Deck> removed() throws SQLException {
         final List<Deck> removed = new ArrayList<>(0);
-        try (var statement = this.connection.createStatement();
-            var rows = statement.executeQuery(
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet rows = statement.executeQuery(
                 "select id, name, mtime_secs, usn from decks order by id"
-            )) {
+            )
+        ) {
             while (rows.next()) {
                 boolean wanted = false;
                 for (final Deck deck : this.decklist) {
@@ -266,13 +256,13 @@ final class Decks {
                 if (!wanted) {
                     final DeckId id = new DeckId(rows.getLong("id"));
                     removed.add(
-                        Deck.builder()
-                            .id(id)
-                            .name(rows.getString("name"))
-                            .modified(rows.getLong("mtime_secs"))
-                            .usn(rows.getLong("usn"))
-                            .dynamic(false)
-                            .build()
+                        new Deck(
+                            id,
+                            rows.getString("name"),
+                            rows.getLong("mtime_secs"),
+                            rows.getLong("usn"),
+                            false
+                        )
                     );
                 }
             }

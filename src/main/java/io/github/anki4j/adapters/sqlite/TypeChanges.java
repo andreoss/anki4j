@@ -38,29 +38,48 @@ final class TypeChanges implements NoteTypes {
      * @param state Contents of the file
      */
     TypeChanges(final CollectionState state) {
-        this.state = state;
-        this.models = new Models(
-            state.getConnection(),
-            state.getNotetypelist(),
-            state.getHeader().models()
+        this(
+            state,
+            new Models(
+                state.getConnection(),
+                state.getNotetypelist(),
+                state.getHeader().models()
+            ),
+            new Clock(System::currentTimeMillis)
         );
-        this.clock = new Clock(System::currentTimeMillis);
+    }
+
+    /**
+     * New editor of the note types.
+     *
+     * @param state Contents of the file
+     * @param models The models of the collection
+     * @param clock The clock of the collection
+     */
+    TypeChanges(
+        final CollectionState state,
+        final Models models,
+        final Clock clock
+    ) {
+        this.state = state;
+        this.models = models;
+        this.clock = clock;
     }
 
     @Override
     public NoteType addNoteType(final NoteType type) {
-        final NoteType added = NoteType.builder()
-            .id(new NoteTypeId(this.models.nextid()))
-            .name(type.getName())
-            .fields(type.getFields())
-            .templates(type.getTemplates())
-            .checks(type.getChecks())
-            .css(type.getCss())
-            .sortfield(type.getSortfield())
-            .deck(type.getDeck())
-            .modified(this.clock.now())
-            .usn(type.getUsn())
-            .build();
+        final NoteType added = new NoteType(
+            new NoteTypeId(this.models.nextid()),
+            type.getName(),
+            type.getFields(),
+            type.getTemplates(),
+            type.getChecks(),
+            type.getCss(),
+            type.getSortfield(),
+            type.getDeck(),
+            this.clock.now(),
+            type.getUsn()
+        );
         this.state.getNotetypelist().add(added);
         return added;
     }
@@ -73,18 +92,18 @@ final class TypeChanges implements NoteTypes {
             if (current.getId().getValue() == type.getId().getValue()) {
                 types.set(
                     index,
-                    NoteType.builder()
-                        .id(type.getId())
-                        .name(type.getName())
-                        .fields(type.getFields())
-                        .templates(type.getTemplates())
-                        .checks(type.getChecks())
-                        .css(type.getCss())
-                        .sortfield(type.getSortfield())
-                        .deck(type.getDeck())
-                        .modified(this.clock.now())
-                        .usn(type.getUsn())
-                        .build()
+                    new NoteType(
+                        type.getId(),
+                        type.getName(),
+                        type.getFields(),
+                        type.getTemplates(),
+                        type.getChecks(),
+                        type.getCss(),
+                        type.getSortfield(),
+                        type.getDeck(),
+                        this.clock.now(),
+                        type.getUsn()
+                    )
                 );
                 return;
             }

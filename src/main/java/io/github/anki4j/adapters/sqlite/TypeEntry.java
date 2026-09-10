@@ -57,11 +57,6 @@ final class TypeEntry {
         return entry;
     }
 
-    /**
-     * Build the fields of the note type.
-     *
-     * @return Fields of the note type
-     */
     private List<Object> fields() {
         final List<Object> fields = new ArrayList<>(0);
         for (final NoteField field : this.type.getFields()) {
@@ -81,11 +76,6 @@ final class TypeEntry {
         return fields;
     }
 
-    /**
-     * Build the card templates of the note type.
-     *
-     * @return Card templates of the note type
-     */
     private List<Object> templates() {
         final List<Object> templates = new ArrayList<>(0);
         for (final NoteTemplate template : this.type.getTemplates()) {
@@ -107,11 +97,6 @@ final class TypeEntry {
         return templates;
     }
 
-    /**
-     * Build the checks of the note type.
-     *
-     * @return Checks of the note type
-     */
     private List<Object> checks() {
         final List<Object> checks = new ArrayList<>(0);
         for (final Check check : this.type.getChecks()) {
@@ -124,11 +109,6 @@ final class TypeEntry {
         return checks;
     }
 
-    /**
-     * Deck the new cards of the note type go to.
-     *
-     * @return Identifier of the deck
-     */
     private long deck() {
         long deck = 1L;
         if (this.type.getDeck() != null) {

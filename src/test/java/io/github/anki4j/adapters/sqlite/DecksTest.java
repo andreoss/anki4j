@@ -27,30 +27,21 @@ final class DecksTest {
      */
     @Test
     void writesTheDocument() throws SQLException {
-        final List<Deck> decks = List.of(
-            Deck.builder()
-                .id(new DeckId(1L))
-                .name("Default")
-                .modified(3L)
-                .usn(-1L)
-                .dynamic(false)
-                .build(),
-            Deck.builder()
-                .id(new DeckId(2L))
-                .name("Filtered")
-                .modified(4L)
-                .usn(-1L)
-                .dynamic(true)
-                .build()
-        );
         try (Connection connection = DecksTest.connect()) {
             final String document = new Decks(
-                connection, decks, new Document("{}")
+                connection,
+                List.of(
+                    new Deck(new DeckId(1L), "Default", 3L, -1L, false),
+                    new Deck(new DeckId(2L), "Filtered", 4L, -1L, true)
+                ),
+                new Document("{}")
             ).text();
-            Assertions.assertTrue(document.contains("\"Default\""));
-            Assertions.assertTrue(document.contains("\"Filtered\""));
-            Assertions.assertTrue(document.contains("\"dyn\":1"));
-            Assertions.assertTrue(document.contains("\"dyn\":0"));
+            Assertions.assertAll(
+                () -> Assertions.assertTrue(document.contains("\"Default\"")),
+                () -> Assertions.assertTrue(document.contains("\"Filtered\"")),
+                () -> Assertions.assertTrue(document.contains("\"dyn\":1")),
+                () -> Assertions.assertTrue(document.contains("\"dyn\":0"))
+            );
         }
     }
 
@@ -63,9 +54,11 @@ final class DecksTest {
             final List<Deck> decks = new Decks(
                 connection, new ArrayList<>(0), new Document(Fixture.DECKS)
             ).read(11);
-            Assertions.assertEquals(2, decks.size());
-            Assertions.assertEquals("Default", decks.get(0).getName());
-            Assertions.assertEquals(2L, decks.get(1).getId().getValue());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(2, decks.size()),
+                () -> Assertions.assertEquals("Default", decks.get(0).getName()),
+                () -> Assertions.assertEquals(2L, decks.get(1).getId().getValue())
+            );
         }
     }
 
@@ -75,15 +68,17 @@ final class DecksTest {
     @Test
     void readsEmptyInput() throws SQLException {
         try (Connection connection = DecksTest.connect()) {
-            Assertions.assertTrue(
-                new Decks(
-                    connection, new ArrayList<>(0), new Document((String) null)
-                ).read(11).isEmpty()
-            );
-            Assertions.assertTrue(
-                new Decks(
-                    connection, new ArrayList<>(0), new Document("  ")
-                ).read(11).isEmpty()
+            Assertions.assertAll(
+                () -> Assertions.assertTrue(
+                    new Decks(
+                        connection, new ArrayList<>(0), new Document((String) null)
+                    ).read(11).isEmpty()
+                ),
+                () -> Assertions.assertTrue(
+                    new Decks(
+                        connection, new ArrayList<>(0), new Document("  ")
+                    ).read(11).isEmpty()
+                )
             );
         }
     }
@@ -94,10 +89,13 @@ final class DecksTest {
     @Test
     void readsNonObjectInput() throws SQLException {
         try (Connection connection = DecksTest.connect()) {
-            final List<Deck> decks = new Decks(
-                connection, new ArrayList<>(0), new Document("[]")
-            ).read(11);
-            Assertions.assertTrue(decks.isEmpty());
+            Assertions.assertTrue(
+                new Decks(
+                    connection,
+                    new ArrayList<>(0),
+                    new Document("[]")
+                ).read(11).isEmpty()
+            );
         }
     }
 
@@ -110,8 +108,10 @@ final class DecksTest {
             final List<Deck> decks = new Decks(
                 connection, new ArrayList<>(0), new Document("{\"1\": {}}")
             ).read(11);
-            Assertions.assertEquals("", decks.get(0).getName());
-            Assertions.assertEquals(0L, decks.get(0).getModified());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals("", decks.get(0).getName()),
+                () -> Assertions.assertEquals(0L, decks.get(0).getModified())
+            );
         }
     }
 
@@ -121,21 +121,16 @@ final class DecksTest {
     @Test
     void readsDynamicDeck() throws SQLException {
         try (Connection connection = DecksTest.connect()) {
-            final List<Deck> decks = new Decks(
-                connection,
-                new ArrayList<>(0),
-                new Document("{\"1\": {\"id\": 1, \"name\": \"Filtered\", \"dyn\": 1}}")
-            ).read(11);
-            Assertions.assertTrue(decks.get(0).isDynamic());
+            Assertions.assertTrue(
+                new Decks(
+                    connection,
+                    new ArrayList<>(0),
+                    new Document("{\"1\": {\"id\": 1, \"name\": \"Filtered\", \"dyn\": 1}}")
+                ).read(11).get(0).isDynamic()
+            );
         }
     }
 
-    /**
-     * Connect to an empty database.
-     *
-     * @return Connection to the database
-     * @throws SQLException When the connection cannot be opened
-     */
     private static Connection connect() throws SQLException {
         return DriverManager.getConnection("jdbc:sqlite::memory:");
     }

@@ -30,16 +30,6 @@ public final class ArchiveDraft {
         .type(Object.class);
 
     /**
-     * Name of the collection inside the archive.
-     */
-    private static final String FILE = "collection.anki2";
-
-    /**
-     * Name of the map of the media inside the archive.
-     */
-    private static final String MAP = "media";
-
-    /**
      * Path of the archive to write.
      */
     private final Path archive;
@@ -68,11 +58,13 @@ public final class ArchiveDraft {
             String.format("%s.tmp", this.archive.getFileName())
         );
         Files.deleteIfExists(temp);
-        try (ZipOutputStream stream = new ZipOutputStream(
-            Files.newOutputStream(temp)
-        )) {
+        try (
+            ZipOutputStream stream = new ZipOutputStream(
+                Files.newOutputStream(temp)
+            )
+        ) {
             final Zip zip = new Zip(stream);
-            zip.add(ArchiveDraft.FILE, collection);
+            zip.add("collection.anki2", collection);
             final Map<String, Object> names = new LinkedHashMap<>();
             int number = 0;
             for (final Map.Entry<String, Path> entry : media.entrySet()) {
@@ -80,7 +72,7 @@ public final class ArchiveDraft {
                 zip.add(String.valueOf(number), entry.getValue());
                 number += 1;
             }
-            zip.text(ArchiveDraft.MAP, ArchiveDraft.TYPE.toJson(names));
+            zip.text("media", ArchiveDraft.TYPE.toJson(names));
             zip.finish();
         } catch (final IOException error) {
             Files.deleteIfExists(temp);
@@ -92,5 +84,4 @@ public final class ArchiveDraft {
             StandardCopyOption.ATOMIC_MOVE
         );
     }
-
 }

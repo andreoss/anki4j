@@ -9,6 +9,8 @@ import io.github.anki4j.Work;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,11 +28,6 @@ final class SaveTest {
     private static final String DECK = "French";
 
     /**
-     * Suffix of the file the collection is written to first.
-     */
-    private static final String SUFFIX = ".tmp";
-
-    /**
      * The saved file holds the changes of the collection.
      *
      * @throws Exception When the collection cannot be read
@@ -43,8 +40,12 @@ final class SaveTest {
             collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(3, collection.decks().size());
-            Assertions.assertEquals(SaveTest.DECK, collection.decks().get(2).getName());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(3, collection.decks().size()),
+                () -> Assertions.assertEquals(
+                    SaveTest.DECK, collection.decks().get(2).getName()
+                )
+            );
         }
     }
 
@@ -61,9 +62,13 @@ final class SaveTest {
             collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(2, collection.decks().size());
-            Assertions.assertEquals(SaveTest.DECK, collection.decks().get(1).getName());
-            Assertions.assertEquals(1, collection.noteTypes().size());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(2, collection.decks().size()),
+                () -> Assertions.assertEquals(
+                    SaveTest.DECK, collection.decks().get(1).getName()
+                ),
+                () -> Assertions.assertEquals(1, collection.noteTypes().size())
+            );
         }
     }
 
@@ -80,8 +85,12 @@ final class SaveTest {
             collection.save(path);
         }
         try (SqliteCollection collection = new SqliteCollection(path)) {
-            Assertions.assertEquals(1, collection.decks().size());
-            Assertions.assertEquals(SaveTest.DECK, collection.decks().get(0).getName());
+            Assertions.assertAll(
+                () -> Assertions.assertEquals(1, collection.decks().size()),
+                () -> Assertions.assertEquals(
+                    SaveTest.DECK, collection.decks().get(0).getName()
+                )
+            );
         }
     }
 
@@ -93,8 +102,10 @@ final class SaveTest {
     @Test
     void keepsTheReviewLog() throws Exception {
         final Path path = Fixture.legacy(new Work().directory("revlog"));
-        try (java.sql.Connection connection = Fixture.connect(path);
-            Statement statement = connection.createStatement()) {
+        try (
+            Connection connection = Fixture.connect(path);
+            Statement statement = connection.createStatement()
+        ) {
             statement.executeUpdate(
                 """
                 insert into revlog values (
@@ -106,13 +117,19 @@ final class SaveTest {
         try (SqliteCollection collection = new SqliteCollection(path)) {
             collection.save(path);
         }
-        try (java.sql.Connection connection = Fixture.connect(path);
+        try (
+            Connection connection = Fixture.connect(path);
             Statement statement = connection.createStatement();
-            var rows = statement.executeQuery(
-                "select count(*) from revlog"
-            )) {
-            Assertions.assertTrue(rows.next());
-            Assertions.assertEquals(1L, rows.getLong(1));
+            ResultSet rows = statement.executeQuery("select count(*) from revlog")
+        ) {
+            Assertions.assertAll(
+                () -> {
+                    if (!rows.next()) {
+                        Assertions.fail("the review log lost its row");
+                    }
+                },
+                () -> Assertions.assertEquals(1L, rows.getLong(1))
+            );
         }
     }
 
@@ -129,7 +146,7 @@ final class SaveTest {
             Assertions.assertFalse(
                 Files.exists(
                     path.resolveSibling(
-                        path.getFileName() + SaveTest.SUFFIX
+                        String.format("%s.tmp", path.getFileName())
                     )
                 )
             );
