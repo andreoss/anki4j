@@ -9,6 +9,19 @@
   <packaging>jar</packaging>
   <name>anki4j</name>
   <description>Read, create and modify flashcard decks in the standard SQLite collection format.</description>
+  <url>https://github.com/andreoss/anki4j</url>
+  <developers>
+    <developer>
+      <id>andreoss</id>
+      <name>andreoss</name>
+      <email>andreoss@sdf.org</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/andreoss/anki4j.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/andreoss/anki4j.git</developerConnection>
+    <url>https://github.com/andreoss/anki4j</url>
+  </scm>
   <licenses>
     <license>
       <name>GNU General Public License, version 3 or later</name>
@@ -29,6 +42,10 @@
     <pitest.threshold>60</pitest.threshold>
     <coverage.threshold>0.961</coverage.threshold>
     <avaje.version>3.16</avaje.version>
+    <source.version>3.4.0</source.version>
+    <javadoc.version>3.12.0</javadoc.version>
+    <gpg.version>3.2.8</gpg.version>
+    <central.version>0.12.0</central.version>
   </properties>
   <dependencies>
     <dependency>
@@ -172,6 +189,75 @@
                 <param>HTML</param>
                 <param>XML</param>
               </outputFormats>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>release</id>
+      <distributionManagement>
+        <repository>
+          <id>central</id>
+          <url>https://ossrh-staging-api.central.sonatype.com/maven/default/</url>
+        </repository>
+      </distributionManagement>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${source.version}</version>
+            <executions>
+              <execution>
+                <id>sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${javadoc.version}</version>
+            <executions>
+              <execution>
+                <id>javadoc</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${gpg.version}</version>
+            <executions>
+              <execution>
+                <id>sign</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${central.version}</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>${central.autoPublish}</autoPublish>
             </configuration>
           </plugin>
         </plugins>
